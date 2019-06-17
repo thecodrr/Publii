@@ -5,6 +5,7 @@ const md5 = require('md5');
 const normalizePath = require('normalize-path');
 const slug = require('./../../helpers/slug');
 const FTP = require('./ftp.js');
+const AltFTP = require('./ftp-alternative.js');
 const SFTP = require('./sftp.js');
 const S3 = require('./s3.js');
 const GithubPages = require('./github-pages.js');
@@ -66,7 +67,7 @@ class Deployment {
             case 'google-cloud':    connection = new GoogleCloud(); break;
             case 'github-pages':    connection = new GithubPages(); break;
             case 'gitlab-pages':    connection = new GitlabPages(); break;
-            default:                connection = new FTP();         break;
+            default:                connection = new AltFTP();      break;
         }
 
         if(connection) {
