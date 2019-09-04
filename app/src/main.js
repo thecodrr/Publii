@@ -42,8 +42,16 @@ import Tabs from './components/basic-elements/Tabs';
 import TextArea from './components/basic-elements/TextArea';
 import TextInput from './components/basic-elements/TextInput';
 import vSelect from '../node_modules/vue-multiselect/dist/vue-multiselect.min.js';
+/*
+import {SpellCheckHandler, ContextMenuListener, ContextMenuBuilder} from '@getstation/electron-spellchecker';
 
 window.app = null;
+window.spellCheckHandler = new SpellCheckHandler();
+window.spellCheckHandler.attachToInput();
+window.spellCheckHandler.switchLanguage('pl-PL');
+window.contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler, null, true);
+window.contextMenuListener = new ContextMenuListener((info) => { window.contextMenuBuilder.showPopupMenu(info); });
+*/
 
 ipcRenderer.on('app-data-loaded', function (event, initialData) {
     // Add global Vue properties for commonly used libraries
