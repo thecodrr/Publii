@@ -1,9 +1,9 @@
-const path = require('path');
-const normalizePath = require('normalize-path');
-const AvatarHelper = require('./../../../helpers/avatar');
-const URLHelper = require('./../helpers/url');
-const UtilsHelper = require('./../../../helpers/utils');
-const slug = require('./../../../helpers/slug');
+const path = require("path");
+const normalizePath = require("normalize-path");
+const AvatarHelper = require("./../../../helpers/avatar");
+const URLHelper = require("./../helpers/url");
+const UtilsHelper = require("./../../../helpers/utils");
+const slug = require("./../../../helpers/slug");
 
 /**
  * Author item for the renderer
@@ -31,52 +31,92 @@ class AuthorItem {
      * Prepares final author data
      */
     prepareData() {
-        let addIndexHtml = this.renderer.previewMode || this.renderer.siteConfig.advanced.urls.addIndex ? 'index.html' : '';
+        let addIndexHtml =
+            this.renderer.previewMode ||
+            this.renderer.siteConfig.advanced.urls.addIndex
+                ? "index.html"
+                : "";
 
         this.authorData = {
             id: this.authorID,
             name: this.author.name,
             username: this.author.username,
-            avatar: '',
-            avatarImage: '',
-            email: '',
-            description: '',
+            avatar: "",
+            avatarImage: "",
+            email: "",
+            description: "",
             postsNumber: 0,
-            url: '',
-            config: this.author.config ? JSON.parse(this.author.config) : {},
+            socialLinks: {
+                facebook: "",
+                instagram: "",
+                twitter: "",
+                website: ""
+            },
+            url: "",
+            config: this.author.config ? JSON.parse(this.author.config) : {}
         };
 
         try {
-            UtilsHelper.mergeObjects(this.authorData, JSON.parse(this.author.config));
-        } catch(e) {
-            console.log('[WARNING] renderer-context.js: wrong author JSON config data for author with ID: ' + this.authorID);
+            UtilsHelper.mergeObjects(
+                this.authorData,
+                JSON.parse(this.author.config)
+            );
+        } catch (e) {
+            console.log(
+                "[WARNING] renderer-context.js: wrong author JSON config data for author with ID: " +
+                    this.authorID
+            );
         }
 
-        if(typeof this.authorData.avatar === 'string') {
+        if (typeof this.authorData.avatar === "string") {
             if (AvatarHelper.isLocalAvatar(this.authorData.avatar)) {
-                let domain = this.renderer.siteConfig.domain.replace(/\/amp$/m, '/');
-                let avatarUrl = path.join(domain, 'media', 'website', this.authorData.avatar);
+                let domain = this.renderer.siteConfig.domain.replace(
+                    /\/amp$/m,
+                    "/"
+                );
+                let avatarUrl = path.join(
+                    domain,
+                    "media",
+                    "website",
+                    this.authorData.avatar
+                );
                 avatarUrl = normalizePath(avatarUrl);
                 this.authorData.avatar = URLHelper.fixProtocols(avatarUrl);
 
                 if (this.authorData.avatar) {
-                    let avatarPath = path.join(this.renderer.inputDir, 'media', 'website', path.parse(this.authorData.avatar).base);
-                    this.authorData.avatarImage = AvatarHelper.getAvatarData(this.authorData, avatarPath);
+                    let avatarPath = path.join(
+                        this.renderer.inputDir,
+                        "media",
+                        "website",
+                        path.parse(this.authorData.avatar).base
+                    );
+                    this.authorData.avatarImage = AvatarHelper.getAvatarData(
+                        this.authorData,
+                        avatarPath
+                    );
                 }
             } else {
-                this.authorData.avatar = URLHelper.fixProtocols(this.authorData.avatar);
-                this.authorData.avatarImage = AvatarHelper.getAvatarData(this.authorData);
+                this.authorData.avatar = URLHelper.fixProtocols(
+                    this.authorData.avatar
+                );
+                this.authorData.avatarImage = AvatarHelper.getAvatarData(
+                    this.authorData
+                );
             }
         } else {
-            this.authorData.avatar = '';
-            this.authorData.avatarImage = '';
+            this.authorData.avatar = "";
+            this.authorData.avatarImage = "";
         }
 
         this.authorData.postsNumber = this.getPostsNumber();
-        this.authorData.url =   this.renderer.siteConfig.domain + '/' +
-                                this.renderer.siteConfig.advanced.urls.authorsPrefix + '/' +
-                                slug(this.authorData.username) + '/' +
-                                addIndexHtml;
+        this.authorData.url =
+            this.renderer.siteConfig.domain +
+            "/" +
+            this.renderer.siteConfig.advanced.urls.authorsPrefix +
+            "/" +
+            slug(this.authorData.username) +
+            "/" +
+            addIndexHtml;
     }
 
     /**
@@ -84,7 +124,9 @@ class AuthorItem {
      */
     storeData() {
         // Store tag data without references
-        this.renderer.cachedItems.authors[this.authorID] = JSON.parse(JSON.stringify(this.authorData));
+        this.renderer.cachedItems.authors[this.authorID] = JSON.parse(
+            JSON.stringify(this.authorData)
+        );
     }
 
     /**
@@ -93,9 +135,11 @@ class AuthorItem {
      * @returns {number}
      */
     getPostsNumber() {
-        let postsNumber = this.renderer.cachedItems.authorsPostCounts[this.authorID];
+        let postsNumber = this.renderer.cachedItems.authorsPostCounts[
+            this.authorID
+        ];
 
-        if(postsNumber) {
+        if (postsNumber) {
             return postsNumber;
         }
 
