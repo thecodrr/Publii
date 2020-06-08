@@ -1,7 +1,7 @@
 // Necessary packages
-const RendererContext = require('../renderer-context');
-const slug = require('./../../../helpers/slug');
-const path = require('path');
+const RendererContext = require("../renderer-context");
+const slug = require("./../../../helpers/slug");
+const path = require("path");
 
 /**
  * Class used create context
@@ -19,20 +19,25 @@ class RendererContextAuthor extends RendererContext {
         this.author = this.renderer.cachedItems.authors[this.authorID];
 
         // Retrieve post
-        let includeFeaturedPosts = '';
+        let includeFeaturedPosts = "";
 
-        if(this.themeConfig.renderer && !this.themeConfig.renderer.authorsIncludeFeaturedInPosts) {
+        if (
+            this.themeConfig.renderer &&
+            !this.themeConfig.renderer.authorsIncludeFeaturedInPosts
+        ) {
             includeFeaturedPosts = 'status NOT LIKE "%featured%" AND';
         }
 
-        if(this.postsNumber === -1) {
+        if (this.postsNumber === -1) {
             this.postsNumber = 999;
         }
 
-        if(this.postsNumber === 0) {
+        if (this.postsNumber === 0) {
             this.posts = false;
         } else {
-            this.posts = this.db.prepare(`
+            this.posts = this.db
+                .prepare(
+                    `
                 SELECT
                     id
                 FROM
@@ -49,11 +54,13 @@ class RendererContextAuthor extends RendererContext {
                     @postsNumber
                 OFFSET
                     @offset
-            `).all({
-                authorID: this.authorID.toString(),
-                postsNumber: this.postsNumber,
-                offset: this.offset
-            });
+            `
+                )
+                .all({
+                    authorID: this.authorID.toString(),
+                    postsNumber: this.postsNumber,
+                    offset: this.offset
+                });
         }
 
         this.tags = this.renderer.commonData.tags;
@@ -65,54 +72,65 @@ class RendererContextAuthor extends RendererContext {
     }
 
     prepareData() {
-        this.title = 'Author: ' + this.author.name;
+        this.title = "Author: " + this.author.name;
         this.posts = this.posts || [];
-        this.posts = this.posts.map(post => this.renderer.cachedItems.posts[post.id]);
+        this.posts = this.posts.map(
+            post => this.renderer.cachedItems.posts[post.id]
+        );
         this.featuredPosts = this.featuredPosts || [];
-        this.featuredPosts = this.featuredPosts.map(post => this.renderer.cachedItems.posts[post.id]);
+        this.featuredPosts = this.featuredPosts
+            .map(post => this.renderer.cachedItems.posts[post.id])
+            .filter(post => post.author.name === this.author.name);
         this.hiddenPosts = this.hiddenPosts || [];
-        this.hiddenPosts = this.hiddenPosts.map(post => this.renderer.cachedItems.posts[post.id]);
+        this.hiddenPosts = this.hiddenPosts.map(
+            post => this.renderer.cachedItems.posts[post.id]
+        );
 
         // Remove featured posts from posts if featured posts allowed
-        if(
+        if (
             this.themeConfig.renderer &&
             this.themeConfig.renderer.authorsIncludeFeaturedInPosts &&
-            (
-                this.themeConfig.renderer.authorsFeaturedPostsNumber > 0 ||
-                this.themeConfig.renderer.authorsFeaturedPostsNumber === -1
-            )
+            (this.themeConfig.renderer.authorsFeaturedPostsNumber > 0 ||
+                this.themeConfig.renderer.authorsFeaturedPostsNumber === -1)
         ) {
             let featuredPostsIds = this.featuredPosts.map(post => post.id);
-            this.posts = this.posts.filter(post => featuredPostsIds.indexOf(post.id) === -1);
+            this.posts = this.posts.filter(
+                post => featuredPostsIds.indexOf(post.id) === -1
+            );
         }
 
         // Prepare meta data
         let siteName = this.siteConfig.name;
 
-        if(this.siteConfig.displayName) {
+        if (this.siteConfig.displayName) {
             siteName = this.siteConfig.displayName;
         }
 
-        this.metaTitle = this.siteConfig.advanced.authorMetaTitle.replace(/%authorname/g, this.author.name)
-                                                                 .replace(/%sitename/g, siteName);
+        this.metaTitle = this.siteConfig.advanced.authorMetaTitle
+            .replace(/%authorname/g, this.author.name)
+            .replace(/%sitename/g, siteName);
         this.metaDescription = this.siteConfig.advanced.authorMetaDescription;
 
         let metaData = this.author.config;
 
-        if(metaData && metaData.metaTitle) {
-            this.metaTitle = metaData.metaTitle.replace(/%authorname/g, this.author.name)
-                                               .replace(/%sitename/g, siteName);
+        if (metaData && metaData.metaTitle) {
+            this.metaTitle = metaData.metaTitle
+                .replace(/%authorname/g, this.author.name)
+                .replace(/%sitename/g, siteName);
         }
 
-        if(metaData && metaData.metaDescription) {
+        if (metaData && metaData.metaDescription) {
             this.metaDescription = metaData.metaDescription;
         }
 
-        if (this.metaTitle === '') {
-            this.metaTitle = this.siteConfig.advanced.metaTitle.replace(/%sitename/g, siteName);
+        if (this.metaTitle === "") {
+            this.metaTitle = this.siteConfig.advanced.metaTitle.replace(
+                /%sitename/g,
+                siteName
+            );
         }
 
-        if (this.metaDescription === '') {
+        if (this.metaDescription === "") {
             this.metaDescription = this.siteConfig.advanced.metaDescription;
         }
     }
@@ -124,11 +142,11 @@ class RendererContextAuthor extends RendererContext {
         let metaRobotsValue = this.siteConfig.advanced.metaRobotsAuthors;
 
         if (this.siteConfig.advanced.noIndexThisPage) {
-            metaRobotsValue = 'noindex,nofollow';
+            metaRobotsValue = "noindex,nofollow";
         }
 
         this.context = {
-            title: this.metaTitle !== '' ? this.metaTitle : this.title,
+            title: this.metaTitle !== "" ? this.metaTitle : this.title,
             author: this.author,
             posts: this.posts,
             featuredPosts: this.featuredPosts,
