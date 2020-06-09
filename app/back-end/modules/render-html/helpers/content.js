@@ -331,11 +331,19 @@ class ContentHelper {
         filename = filename[filename.length-1];
         let filenameFile = path.parse(filename).name;
         let filenameExtension = path.parse(filename).ext;
+        
+        let isWebP = false;
+        if (filenameExtension === ".webp") {
+            isWebP = true;
+            filenameExtension = path.parse(filenameFile).ext;
+            filenameFile = path.parse(filenameFile).name;
+        }
+
         let baseUrlWithoutFilename = url.replace(filename, '');
         let responsiveImage = baseUrlWithoutFilename + 'responsive/' + filenameFile + '-' + dimension + filenameExtension;
         responsiveImage = responsiveImage.replace(/\s/g, '%20');
 
-        return responsiveImage;
+        return isWebP ? responsiveImage + ".webp" : responsiveImage;
     }
 
     /**

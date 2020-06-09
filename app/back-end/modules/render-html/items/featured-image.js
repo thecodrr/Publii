@@ -74,23 +74,17 @@ class FeaturedImageItem {
         }
 
         let featuredImageSrcSets = '';
+        let webpFeaturedImageSrcSets = '';
 
         if(!this.isGifOrSvg(url)) {
             featuredImageSrcSets = ContentHelper.getFeaturedImageSrcset(url, this.themeConfig);
+            webpFeaturedImageSrcSets = ContentHelper.getFeaturedImageSrcset(url + ".webp", this.themeConfig);
         }
 
         let featuredImageSizes = false;
 
         if(featuredImageSrcSets !== false && !this.isGifOrSvg(url)) {
             featuredImageSizes = ContentHelper.getFeaturedImageSizes(this.themeConfig);
-        }
-
-        if(!featuredImageSrcSets) {
-            featuredImageSrcSets = '';
-        }
-
-        if(!featuredImageSizes) {
-            featuredImageSizes = '';
         }
 
         let featuredImageData = {
@@ -101,8 +95,9 @@ class FeaturedImageItem {
             credits: credits,
             height: imageDimensions.height,
             width: imageDimensions.width,
-            srcset: featuredImageSrcSets,
-            sizes: featuredImageSizes
+            srcset: featuredImageSrcSets || '',
+            webpsrcset: webpFeaturedImageSrcSets || '', 
+            sizes: featuredImageSizes || ''
         };
 
         // Create alternative names for dimensions

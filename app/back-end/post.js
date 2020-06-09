@@ -632,7 +632,7 @@ class Post extends Model {
 
         // Iterate through images
         for (let i in images) {
-            let imagePath = images[i];
+            let imagePath = images[i].replace(".webp", "");
             let fullPath = path.join(imagesDir, imagePath);
 
             // Skip dirs and symlinks
