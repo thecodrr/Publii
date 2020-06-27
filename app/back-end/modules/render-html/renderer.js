@@ -28,7 +28,8 @@ const themeConfigValidator = require("./validators/theme-config.js");
 const UtilsHelper = require("./../../helpers/utils");
 const Sitemap = require("./helpers/sitemap.js");
 const Gdpr = require("./helpers/gdpr.js");
-
+const MiniSearch = require("minisearch");
+const ContentHelper = require("./helpers/content");
 // Default config
 const defaultAstCurrentSiteConfig = require("./../../../config/AST.currentSite.config");
 
@@ -2168,6 +2169,75 @@ class Renderer {
         console.timeEnd("404");
     }
 
+    generateSearchIndex() {
+        let postsData = this.db
+            .prepare(
+                `SELECT
+                    *
+                FROM
+                    posts
+                WHERE
+                    status LIKE "%published%" AND
+                    status NOT LIKE "%trashed%"`
+            )
+            .all();
+        var index = new MiniSearch({
+            fields: ["title", "text"],
+            storeFields: ["title", "url", "createdAt", "tags", "excerpt"]
+        });
+        const docs = [];
+        postsData.forEach(post => {
+            let postURL = this.siteConfig.domain + "/" + post.slug + ".html";
+            if (this.siteConfig.advanced.urls.cleanUrls) {
+                postURL = this.siteConfig.domain + "/" + post.slug + "/";
+            }
+            const doc = {
+                id: post.id,
+                title: post.title,
+                text: post.text.replace(/<\/?[^>]+(>|$)/g, ""),
+                excerpt: ContentHelper.prepareExcerpt(
+                    this.themeConfig.config.excerptLength,
+                    post.text
+                ).replace(/<\/?[^>]+(>|$)/g, ""),
+                createdAt: post.created_at,
+                tags: this.getPostCategories(post.id),
+                url: postURL
+            };
+            docs.push(doc);
+        });
+        index.addAll(docs);
+        this.templateHelper.saveOutputFile(
+            "search_index.json",
+            JSON.stringify(index.toJSON())
+        );
+    }
+
+    getPostCategories(postID) {
+        let tags = this.db
+            .prepare(
+                `
+            SELECT
+                t.name AS name,
+                t.slug AS url
+            FROM
+                tags AS t
+            LEFT JOIN
+                posts_tags AS pt
+                ON
+                pt.tag_id = t.id
+            WHERE
+                pt.post_id = @postID
+            ORDER BY
+                name DESC
+        `
+            )
+            .all({
+                postID: postID
+            });
+
+        return tags;
+    }
+
     /*
      * Generate the 404 error page (if supported in the theme)
      */
@@ -2209,6 +2279,7 @@ class Renderer {
             this.siteConfig.advanced.urls.searchPage,
             output
         );
+        this.generateSearchIndex();
         console.timeEnd("SEARCH");
     }
 
