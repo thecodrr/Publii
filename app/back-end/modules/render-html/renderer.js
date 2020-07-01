@@ -969,14 +969,17 @@ class Renderer {
             );
 
             this.templateHelper.saveOutputPostFile(postSlugs[i], output);
-            const ombed = JSON.stringify({
-                author_name: context.authors[0].name,
-                author_url: context.authors[0].url,
-                provider_name: this.siteConfig.displayName || this.siteName,
-                provider_url: this.siteConfig.domain
-            });
-            this.templateHelper.saveOutputOEmbedFile(postSlugs[i], ombed);
 
+            if (this.siteConfig.advanced.oembedEnabled) {
+                const ombed = JSON.stringify({
+                    author_name: `Written by ${context.post.author.name}`,
+                    author_url: context.post.author.url,
+                    provider_name: this.siteConfig.advanced.oembedProviderTitle,
+                    provider_url: this.siteConfig.advanced.oembedProviderURL
+                });
+                this.templateHelper.saveOutputOEmbedFile(postSlugs[i], ombed);
+            }
+            
             if (ampMode) {
                 this.sendProgress(
                     Math.ceil(90 + progressIncrease * i),

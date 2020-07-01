@@ -749,6 +749,37 @@
 
                     <div slot="tab-4">
                         <field
+                            id="oembed-enabled"
+                            label="Generate OEmbed tag">
+                            <switcher
+                                slot="field"
+                                id="oembed-enabled"
+                                v-model="advanced.oembedEnabled" />
+                        </field>
+
+                        <field
+                            v-if="advanced.oembedEnabled"
+                            label="Provider Title">
+                            <input
+                                slot="field"
+                                type="text"
+                                spellcheck="false"
+                                v-model="advanced.oembedProviderTitle" />
+                        </field>
+
+                        <field
+                            v-if="advanced.oembedEnabled"
+                            label="Provider URL">
+                            <input
+                                slot="field"
+                                type="url"
+                                spellcheck="false"
+                                v-model="advanced.oembedProviderURL" />
+                        </field>
+                    </div>
+
+                    <div slot="tab-5">
+                        <field
                             id="twitter-cards-enabled"
                             label="Generate Twitter cards">
                             <switcher
@@ -781,7 +812,7 @@
                         </field>
                     </div>
 
-                    <div slot="tab-5">
+                    <div slot="tab-6">
                         
                         <field
                             id="amp-is-enabled"
@@ -961,7 +992,7 @@
                         </field>
                     </div>
 
-                    <div slot="tab-6">
+                    <div slot="tab-7">
                         <field
                             id="gdpr-enabled"
                             label="Add GDPR Cookie banner">
@@ -1125,7 +1156,7 @@
                         </field>
                     </div>
 
-                    <div slot="tab-7">
+                    <div slot="tab-8">
                         <field
                             id="html-compression"
                             label="Enable HTML compression">
@@ -1222,7 +1253,7 @@
                         </field>
                     </div>
 
-                    <div slot="tab-8">
+                    <div slot="tab-9">
                         <field
                             id="feed-enable-rss"
                             label="Enable RSS feed">
@@ -1318,7 +1349,7 @@
                         </field>
                     </div>
 
-                    <div slot="tab-9">
+                    <div slot="tab-10">
                         <field
                             id="posts-listing-order-by"
                             label="Posts order by:">
@@ -1494,6 +1525,7 @@ export default {
                 'URLs',
                 'Sitemap',
                 'Open Graph',
+                'OEmbed',
                 'Twitter Cards',
                 'AMP',
                 'GDPR',

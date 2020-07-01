@@ -223,9 +223,9 @@ export default {
     data () {
         let imageResizeEngine = 'sharp';
 
-        if (process.platform === 'linux') {
+        /* if (process.platform === 'linux') {
             imageResizeEngine = 'jimp';
-        }
+        } */
 
         return {
             alwaysSaveSearchState: false,
@@ -264,11 +264,11 @@ export default {
             };
         },
         imageResizeEngines () {
-            if (process.platform === 'linux') {
+            /* if (process.platform === 'linux') {
                 return {
                     'jimp': 'Jimp'
                 };
-            }
+            } */
 
             return {
                 'sharp': 'Sharp',
@@ -337,9 +337,9 @@ export default {
         this.tagsOrdering = this.$store.state.app.config.tagsOrdering;
         this.authorsOrdering = this.$store.state.app.config.authorsOrdering;
 
-        if (process.platform === 'linux') {
+        /* if (process.platform === 'linux') {
             this.imageResizeEnginesSelected = 'jimp';
-        }
+        } */
     },
     methods: {
         goBack () {

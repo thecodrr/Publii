@@ -11,6 +11,7 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
     Handlebars.registerHelper('socialMetaTags', function (contextData) {
         let output = '';
         let openGraphEnabled = rendererInstance.siteConfig.advanced.openGraphEnabled;
+        let oembedEnabled = rendererInstance.siteConfig.advanced.oembedEnabled;
         let openGraphImage = rendererInstance.siteConfig.advanced.openGraphImage;
         let siteName = contextData.data.website.name;
         let image = '';
@@ -78,8 +79,11 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
             if(description === '') {
                 description = contextData.data.root.post.excerpt;
             }
-            output += `<link type="application/json+oembed" href="${contextData.data.website.pageUrl}oembed.json" />`
-        }
+            
+            if (oembedEnabled) {
+                output += `<link type="application/json+oembed" href="${contextData.data.website.pageUrl}oembed.json" />`
+            }
+         }
 
         // Get fallback image if available
         if(openGraphImage && openGraphImage !== '' && image === contextData.data.website.logo) {
@@ -94,10 +98,13 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
                 output += '<meta property="og:image" content="' + image + '"/>';
             }
 
-            output += '<meta property="og:site_name" content="' + siteName.replace(/"/g, "'") + '" />';
+            if (!oembedEnabled) {
+                output += '<meta property="og:site_name" content="' + siteName.replace(/"/g, "'") + '" />';
+                output += '<meta property="og:type" content="' + openGraphType + '" />';
+            }
+
             output += '<meta property="og:description" content="' + stripTags(description).replace(/"/g, "'") + '" />';
             output += '<meta property="og:url" content="' + contextData.data.website.pageUrl + '" />';
-            output += '<meta property="og:type" content="' + openGraphType + '" />';
 
             if (rendererInstance.siteConfig.advanced.openGraphAppId !== '') {
                 output += '<meta property="fb:app_id" content="' + rendererInstance.siteConfig.advanced.openGraphAppId + '" />';
