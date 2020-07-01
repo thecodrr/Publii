@@ -39,7 +39,7 @@ function metaRobotsHelper(rendererInstance, Handlebars) {
                 )
             )
         ) {
-            output = '<meta name="robots" content="noindex, follow" />';
+            output = '<meta name="robots" content="noindex, nofollow" />';
         }
 
         return new Handlebars.SafeString(output);

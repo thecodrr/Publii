@@ -114,6 +114,12 @@ class TemplateHelper {
         fs.writeFile(filePath, content, {'flags': 'w'});
     }
 
+    saveOutputOEmbedFile(postSlug, content) {
+        let suffix = '/oembed.json';
+        let filePath = path.join(this.outputDir, postSlug + suffix);
+        fs.writeFile(filePath, content, {'flags': 'w'});
+    }
+
     saveOutputHomePaginationFile(pageNumber, content) {
         let filePath = path.join(this.outputDir, this.siteConfig.advanced.urls.pageName, pageNumber.toString(), 'index.html');
         let pageDirPath = path.join(this.outputDir, this.siteConfig.advanced.urls.pageName);

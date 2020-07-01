@@ -969,6 +969,13 @@ class Renderer {
             );
 
             this.templateHelper.saveOutputPostFile(postSlugs[i], output);
+            const ombed = JSON.stringify({
+                author_name: context.authors[0].name,
+                author_url: context.authors[0].url,
+                provider_name: this.siteConfig.displayName || this.siteName,
+                provider_url: this.siteConfig.domain
+            });
+            this.templateHelper.saveOutputOEmbedFile(postSlugs[i], ombed);
 
             if (ampMode) {
                 this.sendProgress(
