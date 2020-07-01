@@ -38,6 +38,7 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
         // Get tag values according to the current context - listing or single post page
         if(contextData.data.context.indexOf('post') === -1) {
             // Data for the index/tag listing page
+            twitterCardsType = "summary_card"
             image = contextData.data.website.logo;
             title = siteName;
             description = contextData.data.root.metaDescriptionRaw;
@@ -52,7 +53,7 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
 
             if (contextData.data.context.indexOf('author') !== -1) {
                 title = contextData.data.root.author.name;
-
+                image = contextData.data.root.author.avatar;
                 if (rendererInstance.siteConfig.advanced.usePageTitleInsteadItemName) {
                     title = contextData.data.root.title;
                 }
@@ -77,6 +78,7 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
             if(description === '') {
                 description = contextData.data.root.post.excerpt;
             }
+            output += `<link type="application/json+oembed" href="${contextData.data.website.pageUrl}oembed.json" />`
         }
 
         // Get fallback image if available
@@ -118,6 +120,7 @@ function socialMetaTagsHelper(rendererInstance, Handlebars) {
             }
         }
 
+    
         return new Handlebars.SafeString(output);
     });
 }
