@@ -29,6 +29,7 @@ export default (state, getters) => (
             metaDescription: "",
             template: "",
             socialLinks: undefined,
+            website: '',
             email: "",
             avatar: "",
             useGravatar: false
@@ -66,6 +67,7 @@ export default (state, getters) => (
             name: author.name,
             username: author.username,
             email: config.email,
+            website: config.website,
             avatar: config.avatar,
             socialLinks: config.socialLinks,
             useGravatar: config.useGravatar,
@@ -75,6 +77,7 @@ export default (state, getters) => (
             metaDescription: config.metaDescription,
             template: config.template,
             authorTemplates: authorTemplates,
+            additionalData: author.additionalData,
             visibleIndexingOptions: indexingOptionsEnabled
         };
     });

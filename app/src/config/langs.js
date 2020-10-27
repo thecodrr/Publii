@@ -8,8 +8,40 @@ module.exports = [
         code: 'custom'
     },
     {
+        name: 'Bambara',
+        code: 'bm'
+    },
+    {
+        name: 'Bashkir',
+        code: 'ba'
+    },
+    {
+        name: 'Basque',
+        code: 'eu'
+    },
+    {
         name: 'Belarusian',
         code: 'be'
+    },
+    {
+        name: 'Bengali (Bangla)',
+        code: 'bn'
+    },
+    {
+        name: 'Bihari',
+        code: 'bh'
+    },
+    {
+        name: 'Bislama',
+        code: 'bi'
+    },
+    {
+        name: 'Bosnian',
+        code: 'bs'
+    },
+    {
+        name: 'Breton',
+        code: 'br'
     },
     {
         name: 'Bulgarian',
@@ -92,22 +124,6 @@ module.exports = [
         code: 'et'
     },
     {
-        name: 'German',
-        code: 'de'
-    },
-    {
-        name: 'German (Austria)',
-        code: 'de-at'
-    },
-    {
-        name: 'German (Switzerland)',
-        code: 'de-ch'
-    },
-    {
-        name: 'Greek',
-        code: 'el'
-    },
-    {
         name: 'Finnish',
         code: 'fi'
     },
@@ -166,6 +182,22 @@ module.exports = [
     {
         name: 'French (Switzerland)',
         code: 'fr-ch'
+    },
+    {
+        name: 'German',
+        code: 'de'
+    },
+    {
+        name: 'German (Austria)',
+        code: 'de-at'
+    },
+    {
+        name: 'German (Switzerland)',
+        code: 'de-ch'
+    },
+    {
+        name: 'Greek',
+        code: 'el'
     },
     {
         name: 'Hebrew',

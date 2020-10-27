@@ -53,8 +53,13 @@ class AuthorItem {
                 website: ""
             },
             url: "",
+            featuredImage: {},
             config: this.author.config ? JSON.parse(this.author.config) : {}
         };
+
+        if (this.renderer.cachedItems.featuredImages.authors[this.authorData.id]) {
+            this.authorData.featuredImage = this.renderer.cachedItems.featuredImages.authors[this.authorData.id];
+        }
 
         try {
             UtilsHelper.mergeObjects(

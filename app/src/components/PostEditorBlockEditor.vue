@@ -169,7 +169,7 @@ export default {
             }
 
             setTimeout(() => {
-                this.webview.send('set-app-theme', this.$store.state.app.theme);
+                this.webview.send('set-app-theme', this.$root.getCurrentAppTheme());
                 this.webview.send('set-post-id', this.postID);
                 this.webview.send('set-site-name', this.$store.state.currentSite.config.name);
                 
@@ -236,8 +236,9 @@ export default {
                     this.savingPost(this.saveAction.status, postData, this.saveAction.closeEditor);
                 } else {
                     this.$bus.$emit('rendering-popup-display', {
-                        postID: this.postID,
-                        postData: postData
+                        itemID: this.postID,
+                        postData: postData,
+                        postOnly: true
                     });
                 }
             }

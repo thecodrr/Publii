@@ -8,19 +8,21 @@ const UtilsHelper = require('./../../../helpers/utils');
  * Featured image item for the renderer
  */
 class FeaturedImageItem {
-    /**
-     * Constructor
-     *
-     * @param postID
-     * @param rendererInstance
-     */
-    constructor(image, rendererInstance) {
+    constructor(image, rendererInstance, type = 'featuredImages') {
         this.image = image;
-        this.postID = parseInt(image.post_id, 10);
+        this.itemID = parseInt(image.item_id, 10);
         this.renderer = rendererInstance;
         this.db = this.renderer.db;
         this.themeConfig = this.renderer.themeConfig;
         this.imageData = {};
+        this.imageType = type;
+        this.itemType = 'post';
+
+        if (type === 'tagImages') {
+            this.itemType = 'tag';
+        } else if (type === 'authorImages') {
+            this.itemType = 'author';
+        }
 
         this.prepareData();
         this.storeData();
@@ -30,7 +32,7 @@ class FeaturedImageItem {
      * Prepare data of image
      */
     prepareData() {
-        if(isNaN(this.postID)) {
+        if(isNaN(this.itemID)) {
             this.imageData = false;
             return;
         }
@@ -45,10 +47,10 @@ class FeaturedImageItem {
         };
 
         let data = JSON.parse(this.image.additional_data);
-        let imagePath = URLHelper.createImageURL(this.renderer.inputDir, this.postID, this.image.url);
+        let imagePath = URLHelper.createImageURL(this.renderer.inputDir, this.itemID, this.image.url, this.itemType);
         let domain = this.renderer.siteConfig.domain;
 
-        url = URLHelper.createImageURL(domain, this.postID, this.image.url);
+        url = URLHelper.createImageURL(domain, this.itemID, this.image.url, this.itemType);
         alt = data.alt;
         caption = data.caption;
         credits = data.credits;
@@ -84,7 +86,7 @@ class FeaturedImageItem {
         let featuredImageSizes = false;
 
         if(featuredImageSrcSets !== false && !this.isGifOrSvg(url)) {
-            featuredImageSizes = ContentHelper.getFeaturedImageSizes(this.themeConfig);
+            featuredImageSizes = ContentHelper.getFeaturedImageSizes(this.themeConfig, this.itemType);
         }
 
         let featuredImageData = {
@@ -104,9 +106,9 @@ class FeaturedImageItem {
         let dimensions = false;
 
         if(UtilsHelper.responsiveImagesConfigExists(this.themeConfig)) {
-            dimensions = UtilsHelper.responsiveImagesDimensions(this.themeConfig, 'featuredImages');
+            dimensions = UtilsHelper.responsiveImagesDimensions(this.themeConfig, this.imageType);
 
-            if(!dimensions) {
+            if (!dimensions) {
                 dimensions = UtilsHelper.responsiveImagesDimensions(this.themeConfig, 'contentImages');
             }
 
@@ -135,7 +137,7 @@ class FeaturedImageItem {
      */
     storeData() {
         // Store tag data without references
-        this.renderer.cachedItems.featuredImages[this.postID] = JSON.parse(JSON.stringify(this.imageData));
+        this.renderer.cachedItems.featuredImages[this.itemType + 's'][this.itemID] = JSON.parse(JSON.stringify(this.imageData));
     }
 
     /**

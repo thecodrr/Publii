@@ -296,7 +296,7 @@
                             href="#"
                             @click.prevent.stop="editPost(item.id, item.editor)">                           
 
-                          {{ item.title }}
+                            {{ item.title }}
 
                             <icon
                                 v-if="item.isFeatured"
@@ -391,7 +391,7 @@
             class="empty-state post">
             
            <div>               
-                <img :src="'../src/assets/svg/' + $store.state.app.theme + '/wysiwyg-editor.svg'" height="286" width="331" />
+                <img :src="'../src/assets/svg/' + $root.getCurrentAppTheme() + '/wysiwyg-editor.svg'" height="286" width="331" />
                 <h3>WYSIWYG editor</h3>
                 <p>This editor provides a familiar word-processing experience, with additional tools for users that want to control every aspect of their page content.</p>
                 <p-button
@@ -404,7 +404,7 @@
            </div>
            
            <div>
-                <img :src="'../src/assets/svg/' + $store.state.app.theme + '/block-editor.svg'" height="286" width="331" />
+                <img :src="'../src/assets/svg/' + $root.getCurrentAppTheme() + '/block-editor.svg'" height="286" width="331" />
                 <h3>Block editor</h3>
                 <p>A modern and intuitive editor with shortkey and markdown support to make blogging easy, with no need to worry about HTML or other code elements.</p>
                 <p-button
@@ -417,7 +417,7 @@
            </div>
             
            <div>                
-                <img :src="'../src/assets/svg/' + $store.state.app.theme + '/markdown-editor.svg'" height="286" width="331" />
+                <img :src="'../src/assets/svg/' + $root.getCurrentAppTheme() + '/markdown-editor.svg'" height="286" width="331" />
                 <h3>Markdown editor</h3>
                 <p>This editor supports Markdown syntax as shorthand for producing content quickly; great for extensive, no-frills projects such as documentation. </p>
                 <p-button
@@ -570,6 +570,44 @@ export default {
     },
     methods: {
         addNewPost (editorType) {
+            if (
+                editorType === 'blockeditor' && 
+                this.$store.state.currentSite.themeSettings && 
+                this.$store.state.currentSite.themeSettings.supportedFeatures &&
+                !this.$store.state.currentSite.themeSettings.supportedFeatures.blockEditor
+            ) {
+                this.$bus.$emit('confirm-display', {
+                    message: 'The currently selected theme does not support block editor used in this post. This post can be not properly rendered on the output files.',
+                    okLabel: 'Open editor anyway',
+                    okClick: () => {
+                        this.openEditor(false, editorType);
+                    }
+                });
+                return;
+            }
+
+            this.openEditor(false, editorType);
+        },
+        editPost (id, editorType) {
+            if (
+                editorType === 'blockeditor' && 
+                this.$store.state.currentSite.themeSettings && 
+                this.$store.state.currentSite.themeSettings.supportedFeatures &&
+                !this.$store.state.currentSite.themeSettings.supportedFeatures.blockEditor
+            ) {
+                this.$bus.$emit('confirm-display', {
+                    message: 'The currently selected theme does not support block editor used in this post. This post can be not properly rendered on the output files.',
+                    okLabel: 'Edit post anyway',
+                    okClick: () => {
+                        this.openEditor(id, editorType);
+                    }
+                });
+                return;
+            }
+
+            this.openEditor(id, editorType);
+        },
+        openEditor (id, editorType) {
             let siteName = this.$route.params.name;
 
             if(this.filterValue.trim() !== '' && this.$store.state.app.config.alwaysSaveSearchState) {
@@ -577,18 +615,7 @@ export default {
             }
 
             this.$store.commit('setEditorOpenState', true);
-            this.$router.push('/site/' + siteName + '/posts/editor/' + editorType + '/');
-        },
-        editPost (id, editorType) {
-            let siteName = this.$route.params.name;
-
-            if(this.filterValue.trim() !== '') {
-                localStorage.setItem('publii-posts-search-value', this.filterValue);
-            }
-
-            this.$store.commit('setEditorOpenState', true);
-            this.$router.push('/site/' + siteName + '/posts/editor/' + editorType + '/' + id);
-
+            this.$router.push('/site/' + siteName + '/posts/editor/' + editorType + '/' + (id !== false ? id : ''));
             return false;
         },
         setFilter (newValue) {

@@ -157,7 +157,9 @@
         </collection>
 
         <transition>
-            <author-form v-if="editorVisible" />
+            <author-form 
+                v-if="editorVisible"
+                :form-animation="formAnimation" />
         </transition>
 
         <empty-state
@@ -180,12 +182,24 @@ export default {
     },
     data: function() {
         return {
+            formAnimation: false,
             editorVisible: false,
             filterValue: "",
             selectedItems: [],
             orderBy: "id",
             order: "DESC"
         };
+    },
+    watch: {
+        editorVisible (newValue, oldValue) {
+            if (newValue !== oldValue) {
+                this.formAnimation = true;
+
+                setTimeout(() => {
+                    this.formAnimation = false;
+                }, 500);
+            }
+        }
     },
     computed: {
         items: function() {
@@ -244,10 +258,11 @@ export default {
         addAuthor() {
             this.$bus.$on("show-author-item-editor", () => ({
                 id: 0,
-                name: "",
-                username: "",
-                email: "",
-                avatar: "",
+                name: '',
+                username: '',
+                email: '',
+                website: '',
+                avatar: '',
                 useGravatar: false,
                 description: "",
                 postsCounter: 0,
@@ -255,6 +270,7 @@ export default {
                 metaDescription: "",
                 template: "",
                 authorTemplates: [],
+                additionalData: {},
                 visibleIndexingOptions: false
             }));
 

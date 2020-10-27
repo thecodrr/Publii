@@ -1,11 +1,12 @@
 // Necessary packages
-const fs = require('fs');
-const path = require('path');
-const slug = require('./../../helpers/slug');
-const URLHelper = require('./helpers/url');
-const normalizePath = require('normalize-path');
-const RendererCache = require('./renderer-cache');
-const UtilsHelper = require('./../../helpers/utils');
+const fs = require("fs");
+const path = require("path");
+const slug = require("./../../helpers/slug");
+const URLHelper = require("./helpers/url");
+const normalizePath = require("normalize-path");
+const RendererCache = require("./renderer-cache");
+const RendererHelpers = require("./helpers/helpers.js");
+const UtilsHelper = require("./../../helpers/utils");
 
 /*
  * Class used create global context variables
@@ -18,32 +19,42 @@ class RendererContext {
         this.themeConfig = rendererInstance.themeConfig;
         this.inputDir = rendererInstance.inputDir;
         this.renderer = rendererInstance;
-        this.postsOrdering = 'created_at DESC';
-        this.featuredPostsOrdering = 'created_at DESC';
-        this.hiddenPostsOrdering = 'created_at DESC';
+        this.postsOrdering = "created_at DESC";
+        this.featuredPostsOrdering = "created_at DESC";
+        this.hiddenPostsOrdering = "created_at DESC";
 
-        if(
-            typeof this.siteConfig.advanced.postsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.postsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.postsListingOrder === "string" &&
+            typeof this.siteConfig.advanced.postsListingOrderBy === "string"
         ) {
-            this.postsOrdering = this.siteConfig.advanced.postsListingOrderBy + ' ' +
-                                 this.siteConfig.advanced.postsListingOrder;
+            this.postsOrdering =
+                this.siteConfig.advanced.postsListingOrderBy +
+                " " +
+                this.siteConfig.advanced.postsListingOrder;
         }
 
-        if(
-            typeof this.siteConfig.advanced.featuredPostsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.featuredPostsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.featuredPostsListingOrder ===
+                "string" &&
+            typeof this.siteConfig.advanced.featuredPostsListingOrderBy ===
+                "string"
         ) {
-            this.featuredPostsOrdering = this.siteConfig.advanced.featuredPostsListingOrderBy + ' ' +
-                                         this.siteConfig.advanced.featuredPostsListingOrder;
+            this.featuredPostsOrdering =
+                this.siteConfig.advanced.featuredPostsListingOrderBy +
+                " " +
+                this.siteConfig.advanced.featuredPostsListingOrder;
         }
 
-        if(
-            typeof this.siteConfig.advanced.hiddenPostsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.hiddenPostsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.hiddenPostsListingOrder ===
+                "string" &&
+            typeof this.siteConfig.advanced.hiddenPostsListingOrderBy ===
+                "string"
         ) {
-            this.hiddenPostsOrdering = this.siteConfig.advanced.hiddenPostsListingOrderBy + ' ' +
-                                         this.siteConfig.advanced.hiddenPostsListingOrder;
+            this.hiddenPostsOrdering =
+                this.siteConfig.advanced.hiddenPostsListingOrderBy +
+                " " +
+                this.siteConfig.advanced.hiddenPostsListingOrder;
         }
     }
 
@@ -53,7 +64,11 @@ class RendererContext {
         let postsData = this.getPostsMenuData();
 
         // Menu config
-        let menuConfigPath = path.join(this.inputDir, 'config', 'menu.config.json');
+        let menuConfigPath = path.join(
+            this.inputDir,
+            "config",
+            "menu.config.json"
+        );
         let menuConfigContent = fs.readFileSync(menuConfigPath);
         let menuData = JSON.parse(menuConfigContent);
         let menus = {
@@ -61,10 +76,14 @@ class RendererContext {
             unassigned: {}
         };
 
-        for(let i = 0; i < menuData.length; i++) {
-            menuData[i].items = this.prepareMenuItems(menuData[i].items, tagsData, postsData);
+        for (let i = 0; i < menuData.length; i++) {
+            menuData[i].items = this.prepareMenuItems(
+                menuData[i].items,
+                tagsData,
+                postsData
+            );
 
-            if (menuData[i].position !== '') {
+            if (menuData[i].position !== "") {
                 menus.assigned[menuData[i].position] = menuData[i];
             } else {
                 menus.unassigned[slug(menuData[i].name)] = menuData[i];
@@ -75,31 +94,43 @@ class RendererContext {
     }
 
     prepareMenuItems(items, tagsData, postsData, level = 2) {
-        for(let i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
             items[i].level = level;
 
-            if(items[i].type === 'post') {
-                let foundedPost = postsData.filter(post => post.id == items[i].link);
+            if (items[i].type === "post") {
+                let foundedPost = postsData.filter(
+                    post => post.id == items[i].link
+                );
 
-                if(foundedPost.length && foundedPost[0].status.indexOf('trashed') === -1) {
+                if (
+                    foundedPost.length &&
+                    foundedPost[0].status.indexOf("trashed") === -1
+                ) {
                     items[i].link = foundedPost[0].slug;
                 } else {
                     items[i] = false;
                 }
             }
 
-            if(items[i].type === 'tag') {
-                let foundedTag = tagsData.filter(tag => tag.id == items[i].link);
+            if (items[i].type === "tag") {
+                let foundedTag = tagsData.filter(
+                    tag => tag.id == items[i].link
+                );
 
-                if(foundedTag.length) {
+                if (foundedTag.length) {
                     items[i].link = foundedTag[0].slug;
                 } else {
                     items[i] = false;
                 }
             }
 
-            if(items[i] && items[i].items.length > 0) {
-                items[i].items = this.prepareMenuItems(items[i].items, tagsData, postsData, level + 1);
+            if (items[i] && items[i].items.length > 0) {
+                items[i].items = this.prepareMenuItems(
+                    items[i].items,
+                    tagsData,
+                    postsData,
+                    level + 1
+                );
             }
         }
 
@@ -110,7 +141,9 @@ class RendererContext {
 
     getTagsMenuData() {
         // Retrieve all tags
-        let tags = this.db.prepare(`
+        let tags = this.db
+            .prepare(
+                `
             SELECT
                 t.id AS id,
                 t.slug AS slug
@@ -118,14 +151,18 @@ class RendererContext {
                 tags AS t
             ORDER BY
                 id ASC
-        `).all();
+        `
+            )
+            .all();
 
         return tags;
     }
 
     getPostsMenuData() {
         // Retrieve all tags
-        let posts = this.db.prepare(`
+        let posts = this.db
+            .prepare(
+                `
             SELECT
                 p.id AS id,
                 p.slug AS slug,
@@ -134,25 +171,31 @@ class RendererContext {
                 posts AS p
             ORDER BY
                 id ASC
-        `).all();
+        `
+            )
+            .all();
 
         return posts;
     }
 
     getAllTags() {
         // Retrieve post tags
-        let tags = this.db.prepare(`
+        let tags = this.db
+            .prepare(
+                `
             SELECT
                 id
             FROM
                 tags
             ORDER BY
                 name ASC
-        `).all();
+        `
+            )
+            .all();
 
         tags = tags.map(tag => this.renderer.cachedItems.tags[tag.id]);
 
-        if(!this.siteConfig.advanced.displayEmptyTags) {
+        if (!this.siteConfig.advanced.displayEmptyTags) {
             tags = tags.filter(tag => tag.postsNumber > 0);
         }
 
@@ -162,72 +205,82 @@ class RendererContext {
     }
 
     getAuthors() {
-        let authorData = this.db.prepare(`SELECT id FROM authors ORDER BY id ASC;`).all();
+        let authorData = this.db
+            .prepare(`SELECT id FROM authors ORDER BY id ASC;`)
+            .all();
         let authors = [];
 
-        for(let i = 0; i < authorData.length; i++) {
+        for (let i = 0; i < authorData.length; i++) {
             authors.push(this.renderer.cachedItems.authors[authorData[i].id]);
         }
 
-        if(!this.siteConfig.advanced.displayEmptyAuthors) {
+        if (!this.siteConfig.advanced.displayEmptyAuthors) {
             authors = authors.filter(author => author.postsNumber > 0);
         }
 
-        authors.sort((authorA, authorB) => authorA.name.localeCompare(authorB.name));
+        authors.sort((authorA, authorB) =>
+            authorA.name.localeCompare(authorB.name)
+        );
 
         return authors;
     }
 
     setGlobalContext() {
-        let addIndexHtml = this.renderer.previewMode || this.siteConfig.advanced.urls.addIndex;
+        let addIndexHtml =
+            this.renderer.previewMode || this.siteConfig.advanced.urls.addIndex;
         let fullURL = normalizePath(this.siteConfig.domain);
-        let searchUrl = fullURL + '/' + this.siteConfig.advanced.urls.searchPage;
-        let errorUrl = fullURL + '/' + this.siteConfig.advanced.urls.errorPage;
+        let searchUrl =
+            fullURL + "/" + this.siteConfig.advanced.urls.searchPage;
+        let errorUrl = fullURL + "/" + this.siteConfig.advanced.urls.errorPage;
         let logoUrl = normalizePath(this.themeConfig.config.logo);
-        let assetsUrl = normalizePath(this.siteConfig.domain) + '/' +
-                        normalizePath(this.themeConfig.files.assetsPath);
-        let postsOrdering = 'desc';
-        
-        if (typeof this.siteConfig.advanced.postsListingOrder === 'string') {
+        let assetsUrl =
+            normalizePath(this.siteConfig.domain) +
+            "/" +
+            normalizePath(this.themeConfig.files.assetsPath);
+        let postsOrdering = "desc";
+
+        if (typeof this.siteConfig.advanced.postsListingOrder === "string") {
             postsOrdering = this.siteConfig.advanced.postsListingOrder.toLowerCase();
         }
 
         assetsUrl = URLHelper.fixProtocols(assetsUrl);
 
-        if(addIndexHtml) {
-            fullURL += '/index.html';
+        if (addIndexHtml) {
+            fullURL += "/index.html";
         }
 
         fullURL = URLHelper.fixProtocols(fullURL);
         searchUrl = URLHelper.fixProtocols(searchUrl);
         errorUrl = URLHelper.fixProtocols(errorUrl);
 
-        if(logoUrl !== '') {
-            logoUrl = normalizePath(this.siteConfig.domain) + '/' +
-                      normalizePath(this.themeConfig.config.logo);
+        if (logoUrl !== "") {
+            logoUrl =
+                normalizePath(this.siteConfig.domain) +
+                "/" +
+                normalizePath(this.themeConfig.config.logo);
             logoUrl = URLHelper.fixProtocols(logoUrl);
         }
 
-        logoUrl = logoUrl.replace('/amp/media/website/', '/media/website/');
+        logoUrl = logoUrl.replace("/amp/media/website/", "/media/website/");
 
         let siteNameValue = this.siteConfig.name;
 
-        if(this.siteConfig.displayName) {
+        if (this.siteConfig.displayName) {
             siteNameValue = this.siteConfig.displayName;
         }
 
-        if (fullURL.substr(-1) !== '/' && fullURL.substr(-5) !== '.html') {
-            fullURL = fullURL + '/';
+        if (fullURL.substr(-1) !== "/" && fullURL.substr(-5) !== ".html") {
+            fullURL = fullURL + "/";
         }
 
         this.context = {
             website: {
                 url: fullURL,
-                baseUrl: fullURL.replace('/index.html', '/'),
+                baseUrl: fullURL.replace("/index.html", "/"),
                 searchUrl: searchUrl,
                 errorUrl: errorUrl,
-                pageUrl: '',
-                ampUrl: '',
+                pageUrl: "",
+                ampUrl: "",
                 name: siteNameValue,
                 logo: logoUrl,
                 assetsUrl: assetsUrl,
@@ -242,14 +295,31 @@ class RendererContext {
                     name: this.themeConfig.name,
                     version: this.themeConfig.version,
                     author: this.themeConfig.author
-                }
+                },
+                createAuthorPages: RendererHelpers.getRendererOptionValue(
+                    "createAuthorPages",
+                    this.themeConfig
+                ),
+                createTagPages: RendererHelpers.getRendererOptionValue(
+                    "createTagPages",
+                    this.themeConfig
+                ),
+                createSearchPage: RendererHelpers.getRendererOptionValue(
+                    "createSearchPage",
+                    this.themeConfig
+                ),
+                create404page: RendererHelpers.getRendererOptionValue(
+                    "create404page",
+                    this.themeConfig
+                )
             },
             pagination: false,
-            headCustomCode: this.siteConfig.advanced.customHeadCode || '',
-            headAmpCustomCode: this.siteConfig.advanced.customHeadAmpCode || '',
-            bodyCustomCode: this.siteConfig.advanced.customBodyCode || '',
-            footerCustomCode: this.siteConfig.advanced.customFooterCode || '',
-            footerAmpCustomCode: this.siteConfig.advanced.customFooterAmpCode || '',
+            headCustomCode: this.siteConfig.advanced.customHeadCode || "",
+            headAmpCustomCode: this.siteConfig.advanced.customHeadAmpCode || "",
+            bodyCustomCode: this.siteConfig.advanced.customBodyCode || "",
+            footerCustomCode: this.siteConfig.advanced.customFooterCode || "",
+            footerAmpCustomCode:
+                this.siteConfig.advanced.customFooterAmpCode || "",
             customHTML: this.siteConfig.advanced.customHTML || false,
             utils: {
                 currentYear: new Date().getFullYear(),
@@ -258,68 +328,92 @@ class RendererContext {
         };
 
         // In AMP mode create special global @amp variable
-        if(this.renderer.ampMode) {
-            let ampImage = '';
-            let ampCustomCssPath = path.join(this.inputDir, 'config', 'custom-css-amp.css');
-            let ampCustomCss = '';
-            
+        if (this.renderer.ampMode) {
+            let ampImage = "";
+            let ampCustomCssPath = path.join(
+                this.inputDir,
+                "config",
+                "custom-css-amp.css"
+            );
+            let ampCustomCss = "";
+
             if (UtilsHelper.fileExists(ampCustomCssPath)) {
                 ampCustomCss = fs.readFileSync(ampCustomCssPath);
             }
 
-            if(
-                this.siteConfig.advanced.ampImage !== '' &&
-                this.siteConfig.advanced.ampImage.indexOf('http://') === -1 &&
-                this.siteConfig.advanced.ampImage.indexOf('https://') === -1 &&
-                this.siteConfig.advanced.ampImage.indexOf('media/website/') === -1
+            if (
+                this.siteConfig.advanced.ampImage !== "" &&
+                this.siteConfig.advanced.ampImage.indexOf("http://") === -1 &&
+                this.siteConfig.advanced.ampImage.indexOf("https://") === -1 &&
+                this.siteConfig.advanced.ampImage.indexOf("media/website/") ===
+                    -1
             ) {
-                ampImage = path.join(this.siteConfig.domain, 'media', 'website', this.siteConfig.advanced.ampImage);
+                ampImage = path.join(
+                    this.siteConfig.domain,
+                    "media",
+                    "website",
+                    this.siteConfig.advanced.ampImage
+                );
                 ampImage = normalizePath(ampImage);
                 ampImage = URLHelper.fixProtocols(ampImage);
             } else {
-                ampImage = URLHelper.fixProtocols(this.siteConfig.advanced.ampImage);
+                ampImage = URLHelper.fixProtocols(
+                    this.siteConfig.advanced.ampImage
+                );
             }
 
-            ampImage = ampImage.replace('/amp/media/website/', '/media/website/');
+            ampImage = ampImage.replace(
+                "/amp/media/website/",
+                "/media/website/"
+            );
 
-            if(this.siteConfig.advanced.ampPrimaryColor) {
+            if (this.siteConfig.advanced.ampPrimaryColor) {
                 this.context.amp = {
                     primaryColor: this.siteConfig.advanced.ampPrimaryColor,
                     image: ampImage,
                     shareButtons: this.siteConfig.advanced.ampShare,
                     shareSystem: this.siteConfig.advanced.ampShareSystem,
                     shareFacebook: this.siteConfig.advanced.ampShareFacebook,
-                    shareFacebookId: this.siteConfig.advanced.ampShareFacebookId,
+                    shareFacebookId: this.siteConfig.advanced
+                        .ampShareFacebookId,
                     shareTwitter: this.siteConfig.advanced.ampShareTwitter,
                     sharePinterest: this.siteConfig.advanced.ampSharePinterest,
                     shareLinkedIn: this.siteConfig.advanced.ampShareLinkedIn,
                     shareTumblr: this.siteConfig.advanced.ampShareTumblr,
                     shareWhatsapp: this.siteConfig.advanced.ampShareWhatsapp,
-                    footerText: this.siteConfig.advanced.ampFooterText || 'Powered by Publii',
-                    GAID: this.siteConfig.advanced.ampGaId || '',
-                    originalWebsiteUrl: this.siteConfig.domain.replace(/amp$/, ''),
+                    footerText:
+                        this.siteConfig.advanced.ampFooterText ||
+                        "Powered by Publii",
+                    GAID: this.siteConfig.advanced.ampGaId || "",
+                    originalWebsiteUrl: this.siteConfig.domain.replace(
+                        /amp$/,
+                        ""
+                    ),
                     customCss: ampCustomCss
-                }
+                };
             } else {
                 // Default configuration for AMP
                 this.context.amp = {
-                    primaryColor: '#039be5',
-                    image: '',
+                    primaryColor: "#039be5",
+                    image: "",
                     shareButtons: 1,
                     shareSystem: 1,
                     shareFacebook: 1,
-                    shareFacebookId: '',
+                    shareFacebookId: "",
                     shareTwitter: 1,
                     shareGooglePlus: 1,
                     sharePinterest: 1,
                     shareLinkedIn: 1,
                     shareTumblr: 1,
                     shareWhatsapp: 1,
-                    footerText: 'Powered by Publii',
-                    GAID: '',
-                    originalWebsiteUrl: this.siteConfig.domain.replace(/amp$/, ''),
+                    footerText: "Powered by Publii",
+                    GAID: "",
+                    originalWebsiteUrl: this.siteConfig.domain.replace(
+                        /amp$/,
+                        ""
+                    ),
                     customCss: ampCustomCss
-                }
+                };
             }
         }
     }
@@ -331,44 +425,63 @@ class RendererContext {
     }
 
     getContentStructure() {
-        if(this.themeConfig.renderer && !this.themeConfig.renderer.createContentStructure) {
+        if (
+            this.themeConfig.renderer &&
+            !this.themeConfig.renderer.createContentStructure
+        ) {
             return false;
         }
 
-        let postsOrdering = 'created_at DESC';
+        let postsOrdering = "created_at DESC";
 
-        if(
-            typeof this.siteConfig.advanced.postsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.postsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.postsListingOrder === "string" &&
+            typeof this.siteConfig.advanced.postsListingOrderBy === "string"
         ) {
-            postsOrdering = this.siteConfig.advanced.postsListingOrderBy + ' ' +
-                            this.siteConfig.advanced.postsListingOrder;
+            postsOrdering =
+                this.siteConfig.advanced.postsListingOrderBy +
+                " " +
+                this.siteConfig.advanced.postsListingOrder;
         }
 
-        let posts = this.db.prepare(`
+        let posts = this.db
+            .prepare(
+                `
                 SELECT
                     id
                 FROM
                     posts
                 WHERE
-                    status LIKE "%published%" AND
-                    status NOT LIKE "%trashed%"
+                    status LIKE '%published%' AND
+                    status NOT LIKE '%trashed%'
                 ORDER BY
                     ${postsOrdering}
-        `).all();
+        `
+            )
+            .all();
         let tags = this.db.prepare(`SELECT id FROM tags`).all();
         let authors = this.db.prepare(`SELECT id FROM authors`).all();
 
-        posts = posts.map(post => JSON.parse(JSON.stringify(this.renderer.cachedItems.posts[post.id])));
-        tags = tags.map(tag => JSON.parse(JSON.stringify(this.renderer.cachedItems.tags[tag.id])));
-        authors = authors.map(author => JSON.parse(JSON.stringify(this.renderer.cachedItems.authors[author.id])));
+        posts = posts.map(post =>
+            JSON.parse(JSON.stringify(this.renderer.cachedItems.posts[post.id]))
+        );
+        tags = tags.map(tag =>
+            JSON.parse(JSON.stringify(this.renderer.cachedItems.tags[tag.id]))
+        );
+        authors = authors.map(author =>
+            JSON.parse(
+                JSON.stringify(this.renderer.cachedItems.authors[author.id])
+            )
+        );
 
-        for(let i = 0; i < tags.length; i++) {
+        for (let i = 0; i < tags.length; i++) {
             tags[i].posts = this.getContentStructureTagPosts(tags[i].id);
         }
 
-        for(let i = 0; i < authors.length; i++) {
-            authors[i].posts = this.getContentStructureAuthorPosts(authors[i].id);
+        for (let i = 0; i < authors.length; i++) {
+            authors[i].posts = this.getContentStructureAuthorPosts(
+                authors[i].id
+            );
         }
 
         return {
@@ -379,17 +492,21 @@ class RendererContext {
     }
 
     getContentStructureTagPosts(tagID) {
-        let postsOrdering = 'created_at DESC';
+        let postsOrdering = "created_at DESC";
 
-        if(
-            typeof this.siteConfig.advanced.postsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.postsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.postsListingOrder === "string" &&
+            typeof this.siteConfig.advanced.postsListingOrderBy === "string"
         ) {
-            postsOrdering = this.siteConfig.advanced.postsListingOrderBy + ' ' +
+            postsOrdering =
+                this.siteConfig.advanced.postsListingOrderBy +
+                " " +
                 this.siteConfig.advanced.postsListingOrder;
         }
 
-        let posts = this.db.prepare(`
+        let posts = this.db
+            .prepare(
+                `
                 SELECT
                     posts_tags.post_id AS id
                 FROM
@@ -400,45 +517,53 @@ class RendererContext {
                     posts_tags.post_id = posts.id
                 WHERE
                     posts_tags.tag_id = @tagID AND
-                    posts.status LIKE "%published%" AND
-                    posts.status NOT LIKE "%hidden%" AND
-                    posts.status NOT LIKE "%trashed%"
+                    posts.status LIKE '%published%' AND
+                    posts.status NOT LIKE '%hidden%' AND
+                    posts.status NOT LIKE '%trashed%'
                 ORDER BY
                     ${postsOrdering}
-        `).all({
-            tagID: tagID
-        });
+        `
+            )
+            .all({
+                tagID: tagID
+            });
 
         posts = posts.map(post => this.renderer.cachedItems.posts[post.id]);
         return posts;
     }
 
     getContentStructureAuthorPosts(authorID) {
-        let postsOrdering = 'created_at DESC';
+        let postsOrdering = "created_at DESC";
 
-        if(
-            typeof this.siteConfig.advanced.postsListingOrder === 'string' &&
-            typeof this.siteConfig.advanced.postsListingOrderBy === 'string'
+        if (
+            typeof this.siteConfig.advanced.postsListingOrder === "string" &&
+            typeof this.siteConfig.advanced.postsListingOrderBy === "string"
         ) {
-            postsOrdering = this.siteConfig.advanced.postsListingOrderBy + ' ' +
+            postsOrdering =
+                this.siteConfig.advanced.postsListingOrderBy +
+                " " +
                 this.siteConfig.advanced.postsListingOrder;
         }
 
-        let posts = this.db.prepare(`
+        let posts = this.db
+            .prepare(
+                `
                 SELECT
                     id
                 FROM
                     posts
                 WHERE
-                    status LIKE "%published%" AND
-                    status NOT LIKE "%hidden%" AND
-                    status NOT LIKE "%trashed%" AND
+                    status LIKE '%published%' AND
+                    status NOT LIKE '%hidden%' AND
+                    status NOT LIKE '%trashed%' AND
                     authors LIKE @authorID
                 ORDER BY
                     ${postsOrdering}
-        `).all({
-            authorID: authorID.toString()
-        });
+        `
+            )
+            .all({
+                authorID: authorID.toString()
+            });
 
         posts = posts.map(post => this.renderer.cachedItems.posts[post.id]);
         return posts;
@@ -450,53 +575,94 @@ class RendererContext {
     }
 
     getFeaturedPosts(type) {
-        let postsLimit = 'LIMIT 5';
+        let postsLimit = "LIMIT 5";
 
-        if(this.themeConfig.renderer) {
-            if (type === 'homepage' && this.themeConfig.renderer.featuredPostsNumber) {
-                postsLimit = 'LIMIT ' + this.themeConfig.renderer.featuredPostsNumber;
-            } else if (type === 'author' && this.themeConfig.renderer.authorsFeaturedPostsNumber) {
-                postsLimit = 'LIMIT ' + this.themeConfig.renderer.authorsFeaturedPostsNumber;
-            } else if (type === 'tag' && this.themeConfig.renderer.tagsFeaturedPostsNumber) {
-                postsLimit = 'LIMIT ' + this.themeConfig.renderer.tagsFeaturedPostsNumber;
+        if (this.themeConfig.renderer) {
+            if (
+                type === "homepage" &&
+                RendererHelpers.getRendererOptionValue(
+                    "featuredPostsNumber",
+                    this.themeConfig
+                )
+            ) {
+                postsLimit =
+                    "LIMIT " +
+                    RendererHelpers.getRendererOptionValue(
+                        "featuredPostsNumber",
+                        this.themeConfig
+                    );
+            } else if (
+                type === "author" &&
+                RendererHelpers.getRendererOptionValue(
+                    "authorsFeaturedPostsNumber",
+                    this.themeConfig
+                )
+            ) {
+                postsLimit =
+                    "LIMIT " +
+                    RendererHelpers.getRendererOptionValue(
+                        "authorsFeaturedPostsNumber",
+                        this.themeConfig
+                    );
+            } else if (
+                type === "tag" &&
+                RendererHelpers.getRendererOptionValue(
+                    "tagsFeaturedPostsNumber",
+                    this.themeConfig
+                )
+            ) {
+                postsLimit =
+                    "LIMIT " +
+                    RendererHelpers.getRendererOptionValue(
+                        "tagsFeaturedPostsNumber",
+                        this.themeConfig
+                    );
             }
 
-            if (postsLimit === 'LIMIT -1') {
-                postsLimit = '';
+            if (postsLimit === "LIMIT -1") {
+                postsLimit = "";
             }
         }
 
-        let results = this.db.prepare(`
+        let results = this.db
+            .prepare(
+                `
             SELECT
                 id
             FROM
                 posts
             WHERE
-                status LIKE "%published%" AND
-                status LIKE "%featured%" AND
-                status NOT LIKE "%trashed%" AND
-                status NOT LIKE "%hidden%"
+                status LIKE '%published%' AND
+                status LIKE '%featured%' AND
+                status NOT LIKE '%trashed%' AND
+                status NOT LIKE '%hidden%'
             ORDER BY
                 ${this.featuredPostsOrdering}
             ${postsLimit}
-        `).all();
+        `
+            )
+            .all();
 
         return results;
     }
 
     getHiddenPosts() {
-        let results = this.db.prepare(`
+        let results = this.db
+            .prepare(
+                `
             SELECT
                 id
             FROM
                 posts
             WHERE
-                status LIKE "%published%" AND
-                status LIKE "%hidden%" AND
-                status NOT LIKE "%trashed%"
+                status LIKE '%published%' AND
+                status LIKE '%hidden%' AND
+                status NOT LIKE '%trashed%'
             ORDER BY
                 ${this.hiddenPostsOrdering}
-        `).all();
+        `
+            )
+            .all();
 
         return results;
     }

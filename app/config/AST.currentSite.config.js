@@ -1,4 +1,5 @@
 const AstCurrentSiteConfig = {
+    uuid: '',
     name: '',
     displayName: '',
     synced: false,
@@ -43,6 +44,9 @@ const AstCurrentSiteConfig = {
         tagNoIndexPagination: false,
         tagNoPagination: false,
         metaRobotsTags: 'noindex, follow',
+        tagsMetaTitle: 'All tags - %sitename',
+        tagsMetaDescription: '',
+        metaRobotsTagsList: 'noindex, follow',
         authorMetaTitle: 'Author: %authorname - %sitename',
         authorMetaDescription: '',
         metaRobotsAuthors: 'noindex, follow',
@@ -74,7 +78,7 @@ const AstCurrentSiteConfig = {
         urls: {
             cleanUrls: false,
             addIndex: false,
-            tagsPrefix: '',
+            tagsPrefix: 'tags',
             authorsPrefix: 'authors',
             pageName: 'page',
             errorPage: '404.html',
@@ -148,7 +152,8 @@ const AstCurrentSiteConfig = {
             repo: '',
             branch: '',
             token: '',
-            parallelOperations: 1
+            parallelOperations: 1,
+            apiRateLimiting: 1
         },
         gitlab: {
             server: 'https://gitlab.com/',

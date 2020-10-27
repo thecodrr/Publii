@@ -2,7 +2,8 @@
     <div
         id="inline-toolbar"
         ref="toolbar"
-        contenteditable="false">
+        contenteditable="false"
+        @click.stop>
        <button
             id="inline-toolbar-bold"
             class="tox-icon tox-tbtn__icon-wrap"
@@ -91,14 +92,15 @@ export default {
                     relAttr = ' rel="' + relAttr.join(' ') + '"';
                 }
 
-                let linkHTML = `<a href="${response.url}"${response.title}${response.target}${relAttr}>${response.text}</a>`;
+                let linkHTMLStart = `<a href="${response.url}"${response.title}${response.target}${relAttr}>`;
+                let linkHTMLContent = response.text;
+                let linkHTMLEnd = `</a>`;
 
-                if (tinymce.activeEditor.selection.getContent() === '') {
-                    tinymce.activeEditor.insertContent(linkHTML);
-                } else {
-                    tinymce.activeEditor.selection.setContent('');
-                    tinymce.activeEditor.selection.setContent(linkHTML);
+                if (linkHTMLContent === '') {
+                    linkHTMLContent = tinymce.activeEditor.selection.getContent();
                 }
+
+                tinymce.activeEditor.selection.setContent(linkHTMLStart + linkHTMLContent + linkHTMLEnd);
 
                 setTimeout(() => {
                     this.updateLinkButtons();

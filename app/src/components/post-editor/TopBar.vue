@@ -18,19 +18,19 @@
             <btn-dropdown
                 ref="dropdown-button"
                 :items="dropdownItems"
-                :min-width="210"
+                :min-width="184"
                 :defaultValue="retrieveCurrentAction()" />
 
             <p-button
                 type="outline"
                 @click.native="cancelPost">
-                <template v-if="!$parent.possibleDataLoss">Close</template>
-                <template v-if="$parent.possibleDataLoss">Cancel</template>
+                Back to posts
             </p-button>
 
             <p-button 
                 icon="settings"
-                type="outline icon only-icon"
+
+                :type="$parent.sidebarVisible ? 'outline icon only-icon-color' : 'outline icon only-icon'"
                 @click.native="$parent.toggleSidebar" />
         </div>
 
@@ -168,7 +168,9 @@ export default {
             let preparedText = this.$parent.postData.text;
             // Remove directory path from images src attribute
             let mediaPath = PostHelper.getMediaPath(this.$store, this.$parent.postID);
+            preparedText = preparedText.replace(/file:(\/){1,}/gmi, 'file:///');
             preparedText = preparedText.split(mediaPath).join('#DOMAIN_NAME#');
+            preparedText = preparedText.replace(/file:(\/){1,}\#DOMAIN_NAME\#/gmi, '#DOMAIN_NAME#');
             // Send an event which will remove unused images from the post editor
             ipcRenderer.send('app-post-cancel', {
                 'site': this.$store.state.currentSite.config.name,
@@ -230,7 +232,7 @@ export default {
 
             &:nth-child(2) {
                 margin-left: 1rem;
-                width: 94px;
+                width: 120px;
             }
 
             &:nth-child(3) {

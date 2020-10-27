@@ -42,7 +42,7 @@ class ContentHelper {
         preparedText = ContentHelper.parseText(preparedText, editor);
 
         // Remove content for AMP or non-AMP depending from ampMode value
-        if(ampMode) {
+        if (ampMode) {
             preparedText = preparedText.replace(/<publii-non-amp>[\s\S]*?<\/publii-non-amp>/gmi, '');
             preparedText = preparedText.replace(/<publii-amp>/gmi, '');
             preparedText = preparedText.replace(/<\/publii-amp>/gmi, '');
@@ -74,7 +74,7 @@ class ContentHelper {
         }
 
         // Add loading="lazy" attributes to img, video, audio, iframe tags
-        if (renderer.siteConfig.advanced.mediaLazyLoad) {
+        if (renderer.siteConfig.advanced.mediaLazyLoad && !ampMode) {
             preparedText = preparedText.replace(/<img\s/gmi, '<img loading="lazy" ');
             preparedText = preparedText.replace(/<video\s/gmi, '<video loading="lazy" ');
             preparedText = preparedText.replace(/<audio\s/gmi, '<audio loading="lazy" ');
@@ -94,6 +94,13 @@ class ContentHelper {
                 return '<div class="gallery-wrapper' + classes + '">' + matches.replace(classes, '') + '</div>';
             });
         }
+
+        // Remove double slashes from the gallery URLs (if they appears)
+        preparedText = preparedText.replace(/\/\/gallery\/$/gmi, '/gallery/');
+
+        // Remove paragraphs around <iframe>'s
+        preparedText = preparedText.replace(/\<p\>\<iframe/gmi, '<iframe');
+        preparedText = preparedText.replace(/\<\/iframe\>\<\/p\>/gmi, '</iframe>');
 
         // Wrap iframes into <div class="post__iframe">
         preparedText = preparedText.replace(/(?<!<figure[\s\S]*?class="post__video">[\s\S]*?)(<iframe.*?>[\s\S]*?<\/iframe>)/gmi, function(matches) {
@@ -198,7 +205,7 @@ class ContentHelper {
      * @param baseUrl
      * @returns {*}
      */
-    static getFeaturedImageSrcset(baseUrl, themeConfig) {
+    static getFeaturedImageSrcset(baseUrl, themeConfig, type = 'post') {
         if(!ContentHelper._isImage(baseUrl) || !UtilsHelper.responsiveImagesConfigExists(themeConfig)) {
             return false;
         }
@@ -206,6 +213,16 @@ class ContentHelper {
         let dimensions = UtilsHelper.responsiveImagesDimensions(themeConfig, 'featuredImages');
         let dimensionsData = UtilsHelper.responsiveImagesData(themeConfig, 'featuredImages');
         let groups = UtilsHelper.responsiveImagesGroups(themeConfig, 'featuredImages');
+
+        if (type === 'tag') {
+            dimensions = UtilsHelper.responsiveImagesDimensions(themeConfig, 'tagImages');
+            dimensionsData = UtilsHelper.responsiveImagesData(themeConfig, 'tagImages');
+            groups = UtilsHelper.responsiveImagesGroups(themeConfig, 'tagImages');
+        } else if (type === 'author') {
+            dimensions = UtilsHelper.responsiveImagesDimensions(themeConfig, 'authorImages');
+            dimensionsData = UtilsHelper.responsiveImagesData(themeConfig, 'authorImages');
+            groups = UtilsHelper.responsiveImagesGroups(themeConfig, 'authorImages');
+        }
 
         if(!dimensions) {
             dimensions = UtilsHelper.responsiveImagesDimensions(themeConfig, 'contentImages');
@@ -255,16 +272,18 @@ class ContentHelper {
     /**
      * Returns content of the sizes attribute for featured image
      */
-    static getFeaturedImageSizes(themeConfig) {
+    static getFeaturedImageSizes(themeConfig, type = 'post') {
         if(!UtilsHelper.responsiveImagesConfigExists(themeConfig)) {
             return false;
         }
 
-        if(UtilsHelper.responsiveImagesConfigExists(themeConfig, 'featuredImages')) {
+        if (type === 'tag' && UtilsHelper.responsiveImagesConfigExists(themeConfig, 'tagImages')) {
+            return themeConfig.files.responsiveImages.tagImages.sizes;
+        } else if (type === 'author' && UtilsHelper.responsiveImagesConfigExists(themeConfig, 'authorImages')) {
+            return themeConfig.files.responsiveImages.authorImages.sizes;
+        } else if (type === 'post' && UtilsHelper.responsiveImagesConfigExists(themeConfig, 'featuredImages')) {
             return themeConfig.files.responsiveImages.featuredImages.sizes;
-        }
-
-        if(UtilsHelper.responsiveImagesConfigExists(themeConfig, 'contentImages')) {
+        } else if (UtilsHelper.responsiveImagesConfigExists(themeConfig, 'contentImages')) {
             return themeConfig.files.responsiveImages.contentImages.sizes;
         }
 
@@ -483,6 +502,7 @@ class ContentHelper {
     static setInternalLinks(text, renderer) {
         text = ContentHelper.prepareInternalLinks(text, renderer, 'post');
         text = ContentHelper.prepareInternalLinks(text, renderer, 'tag');
+        text = ContentHelper.prepareInternalLinks(text, renderer, 'tags');
         text = ContentHelper.prepareInternalLinks(text, renderer, 'author');
         text = ContentHelper.prepareInternalLinks(text, renderer, 'frontpage');
         text = ContentHelper.prepareInternalLinks(text, renderer, 'file');
@@ -523,6 +543,20 @@ class ContentHelper {
         if (type === 'frontpage') {
             let url = '#INTERNAL_LINK#/frontpage/1';
             let link = renderer.siteConfig.domain;
+            text = text.split(url).join(link);
+
+            return text;
+        }
+
+        // Get proper URLs for frontpage
+        if (type === 'tags') {
+            let url = '#INTERNAL_LINK#/tags/1';
+            let link = renderer.siteConfig.domain + '/' + renderer.siteConfig.advanced.urls.tagsPrefix + '/';
+
+            if (renderer.previewMode || renderer.siteConfig.advanced.urls.addIndex) {
+                link = link + 'index.html';
+            }
+
             text = text.split(url).join(link);
 
             return text;

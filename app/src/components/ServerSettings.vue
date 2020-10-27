@@ -106,35 +106,38 @@
             </div>
 
             <fields-group v-if="deploymentMethodSelected !== ''">
-                <div class="msg msg-info" v-if="['ftp', 'netlify', 'github-pages', 'gitlab-pages', 's3', 'google-cloud'].indexOf(deploymentMethodSelected) > -1">
-                    <template v-if="deploymentMethodSelected === 'ftp'">
-                        FTP protocol uses an unencrypted transmission, which means any data sent over it, including your username and password, could be read by anyone who may intercept your transmission. We strongly recommend to use FTPS or SFTP protocols if possible.
-                    </template>
+                <div class="msg msg-icon msg-info" v-if="['ftp', 'netlify', 'github-pages', 'gitlab-pages', 's3', 'google-cloud'].indexOf(deploymentMethodSelected) > -1">
+                    <icon name="info" customWidth="28" customHeight="28" />
+                    <p>
+                        <template v-if="deploymentMethodSelected === 'ftp'">
+                            FTP protocol uses an unencrypted transmission, which means any data sent over it, including your username and password, could be read by anyone who may intercept your transmission. We strongly recommend to use FTPS or SFTP protocols if possible.
+                        </template>
 
-                    <template v-if="deploymentMethodSelected === 'netlify'">
-                        Read how to <a href="https://getpublii.com/docs/build-a-static-website-with-netlify.html" target="_blank">configure a website using Netlify</a>.
-                    </template>
+                        <template v-if="deploymentMethodSelected === 'netlify'">
+                            For detailed information about how to configure a website using Netlify, see online<a href="https://getpublii.com/docs/build-a-static-website-with-netlify.html" target="_blank" rel="noopener noreferrer">documentation</a>.
+                        </template>
 
-                    <template v-if="deploymentMethodSelected === 'github-pages'">
-                        Read how to <a href="https://getpublii.com/docs/host-static-website-github-pages.html" target="_blank">configure a website using Github Pages</a>
-                    </template>
+                        <template v-if="deploymentMethodSelected === 'github-pages'">
+                            For detailed information about how to configure a website using Github Page, see online <a href="https://getpublii.com/docs/host-static-website-github-pages.html" target="_blank" rel="noopener noreferrer">documentation</a>.
+                        </template>
 
-                    <template v-if="deploymentMethodSelected === 'gitlab-pages'">
-                        Read how to <a href="https://getpublii.com/docs/host-static-website-gitlab-pages.html" target="_blank">configure a website using GitLab Pages</a>
-                    </template>
+                        <template v-if="deploymentMethodSelected === 'gitlab-pages'">
+                            For detailed information about how to configure a website using GitLab Pages, see online <a href="https://getpublii.com/docs/host-static-website-gitlab-pages.html" target="_blank" rel="noopener noreferrer">documentation</a>.
+                        </template>
 
-                    <template v-if="deploymentMethodSelected === 's3'">
-                        Read how to <a href="https://getpublii.com/docs/setup-static-website-hosting-amazon-s3.html" target="_blank">configure a website using S3</a>
-                    </template>
+                        <template v-if="deploymentMethodSelected === 's3'">
+                            For detailed information about how to configure a website using S3, see online <a href="https://getpublii.com/docs/setup-static-website-hosting-amazon-s3.html" target="_blank" rel="noopener noreferrer">documentation</a>.
+                        </template>
 
-                    <template v-if="deploymentMethodSelected === 'google-cloud'">
-                        Read how to <a href="https://getpublii.com/docs/make-static-website-google-cloud.html" target="_blank">configure a website using Google Cloud</a>
-                    </template>
+                        <template v-if="deploymentMethodSelected === 'google-cloud'">
+                            For detailed information about how to configure a website using Google Cloud, see online <a href="https://getpublii.com/docs/make-static-website-google-cloud.html" target="_blank" rel="noopener noreferrer">documentation</a>.
+                        </template>
+                    </p>
                 </div>
 
                 <field
                     id="domain"
-                    label="Domain">
+                    label="Website URL">
                     <dropdown
                         v-if="!deploymentSettings.relativeUrls"
                         slot="field"
@@ -147,6 +150,7 @@
                         slot="field"
                         id="domain"
                         key="domain"
+                        :disabled="deploymentSettings.relativeUrls"
                         :spellcheck="false"
                         v-model="domain" />
                     <small 
@@ -164,10 +168,10 @@
                         The "file://" protocol is useful only if you are using manual deployment method for the intranet websites.
                     </small>
                     <small
-                        v-if="!deploymentSettings.relativeUrls && (httpProtocolSelected === 'dat' || httpProtocolSelected === 'ipfs')"
+                        v-if="!deploymentSettings.relativeUrls && (httpProtocolSelected === 'dat' || httpProtocolSelected === 'hyper' || httpProtocolSelected === 'ipfs')"
                         class="note"
                         slot="note">
-                        The "dat://" and the "ipfs://" protocol is useful only if you have plans to use your website on P2P networks. Read more about <a href="https://datproject.org/" target="_blank">dat://</a> and <a href="https://ipfs.io/" target="_blank">IPFS</a>
+                        The "dat://", "hyper://" and the "ipfs://" protocol is useful only if you have plans to use your website on P2P networks. Read more about <a href="https://datproject.org/" target="_blank" rel="noopener noreferrer">dat://</a>, <a href="https://hypercore-protocol.org/" target="_blank" rel="noopener noreferrer">hyper://</a> and <a href="https://ipfs.io/" target="_blank" rel="noopener noreferrer">IPFS</a>
                     </small>
                     <small
                         v-if="!deploymentSettings.relativeUrls && httpProtocolSelected === '//'"
@@ -177,23 +181,23 @@
                     </small>
                 </field>
 
-                <field
-                    id="relative-urls"
-                    label=" ">
-                    <switcher
-                        slot="field"
-                        id="relative-urls"
-                        key="relative-urls"
-                        v-model="deploymentSettings.relativeUrls"
-                        @click.native="toggleDomainName" />
-                    <template slot="second-label">
-                        Use relative URLs
-                    </template>
-                    <small
-                        class="note"
-                        slot="note">
-                        Note: while using relative URLs, some features like Open Graph tags, sharing buttons etc. cannot work properly.
-                    </small>
+                <field	
+                    id="relative-urls"	
+                    label=" ">	
+                    <switcher	
+                        slot="field"	
+                        id="relative-urls"	
+                        key="relative-urls"	
+                        v-model="deploymentSettings.relativeUrls"	
+                        @click.native="toggleDomainName" />	
+                    <template slot="second-label">	
+                        Use relative URLs	
+                    </template>	
+                    <small	
+                        class="note"	
+                        slot="note">	
+                        Note: while using relative URLs, some features like Open Graph tags, sitemaps, RSS feeds, JSON feeds etc. will be disabled.	
+                    </small>	
                 </field>
 
                 <field
@@ -217,6 +221,22 @@
                         class="note">
                         The port field cannot be empty and must be a positive integer between 1 and 65535.
                     </small>
+                </field>
+
+                <field
+                    v-if="['ftp', 'ftp+tls'].indexOf(deploymentMethodSelected) > -1"
+                    id="secure-connection"
+                    label="FTPS"
+                    :labelSeparated="true">
+                    <switcher
+                        slot="field"
+                        id="secure-connection"
+                        key="secure-connection"
+                        :value="deploymentMethodSelected === 'ftp+tls'"
+                        @click.native="toggleFtpDeploymentMethod" />
+                    <template slot="second-label">
+                        Use FTP with SSL/TLS
+                    </template>
                 </field>
 
                 <field
@@ -508,6 +528,23 @@
                         More parallel operations can lead to upload errors on slow internet connections or error 403 due API rate limits.
                     </small>
                 </field>
+
+                <field
+                    v-if="deploymentMethodSelected === 'github-pages'"
+                    id="gh-api-rate-limiting"
+                    label="API rate limiting">
+                    <switcher	
+                        slot="field"	
+                        id="gh-api-rate-limiting"	
+                        key="gh-api-rate-limiting"	
+                        v-model="deploymentSettings.github.apiRateLimiting" />
+                    <small
+                        slot="note"
+                        class="note">
+                        Disable this option only if you are using Github Enterprise with disabled API rate limiting. Otherwhise disabling this option can cause deployment errors.
+                    </small>
+                </field>
+
 
                 <field
                     v-if="deploymentMethodSelected === 'gitlab-pages'"
@@ -891,6 +928,7 @@ export default {
                 'http': 'http://',
                 'file': 'file://',
                 'dat': 'dat://',
+                'hyper': 'hyper://',
                 'ipfs': 'ipfs://',
                 '//': '//'
             },
@@ -921,7 +959,7 @@ export default {
                 return './';
             }
 
-            return this.$store.state.currentSite.config.domain.replace('http://', '').replace('https://', '').replace('file://', '');
+            return this.$store.state.currentSite.config.domain.replace('http://', '').replace('https://', '').replace('file:///', '').replace('file://', '');
         },
         currentHttpProtocol () {
             if (this.$store.state.currentSite.config.domain.indexOf('file') === 0) {
@@ -1010,12 +1048,12 @@ export default {
         fullDomainName () {
             let domain = this.prepareDomain();
 
-            if ((domain === '' || domain === '.') && this.deploymentSettings.relativeUrls) {
-                domain = './';
+            if ((domain === '' || domain === '.') && this.deploymentSettings.relativeUrls) {	
+                domain = '/';	
             }
 
-            if (this.deploymentSettings.relativeUrls) {
-                return domain;
+            if (this.deploymentSettings.relativeUrls) {	
+                return domain;	
             }
 
             if(this.deploymentMethodSelected === 'github-pages') {
@@ -1131,7 +1169,8 @@ export default {
 
             ipcRenderer.send('app-deploy-test', {
                 siteName: this.$store.state.currentSite.config.name,
-                deploymentConfig: deploymentSettings
+                deploymentConfig: deploymentSettings,
+                uuid: this.$store.state.currentSite.config.uuid
             });
 
             ipcRenderer.once('app-deploy-test-success', (event, data) => {
@@ -1288,9 +1327,9 @@ export default {
         },
         toggleDomainName () {
             if (this.deploymentSettings.relativeUrls) {
-                this.domain = './';
-            } else {
-                this.domain = '';
+                this.domain = '/';	
+            } else {	
+                this.domain = '';	
             }
         },
         getDeploymentMethodName (method) {
@@ -1362,6 +1401,13 @@ export default {
             }
 
             return deploymentSettings;
+        },
+        toggleFtpDeploymentMethod () {
+            if (this.deploymentMethodSelected === 'ftp+tls') {
+                this.deploymentMethodSelected = 'ftp';
+            } else {
+                this.deploymentMethodSelected = 'ftp+tls';
+            }
         }
     }
 }

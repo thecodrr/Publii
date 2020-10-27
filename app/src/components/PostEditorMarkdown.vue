@@ -229,8 +229,9 @@ export default {
                 this.savingPost(newPostStatus, postData, closeEditor);
             } else {
                 this.$bus.$emit('rendering-popup-display', {
-                    postID: this.postID,
-                    postData: postData
+                    itemID: this.postID,
+                    postData: postData,
+                    postOnly: true
                 });
             }
         },
@@ -310,7 +311,7 @@ export default {
             });
         },
         pasteTitle (e) {
-            let text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            let text = (e.originalEvent || e).clipboardData.getData('text/plain').replace(/\n/gmi, '');
             document.execCommand('insertText', false, text);
         }
     },
@@ -388,6 +389,10 @@ export default {
                     border: none;
                     height: auto!important;
                     padding: 0;
+
+                    .CodeMirror-selected {
+                        background: var(--text-selection-color)!important;
+                    }
                 }
 
                 .CodeMirror-advanced-dialog + .CodeMirror {
@@ -395,6 +400,14 @@ export default {
                 }
             }
        }
+    }
+}
+
+@media (min-width: 1800px) {
+    .post-editor-markdown .post-editor-form #post-title {
+        margin: 0 auto 2.6rem;
+        max-width: calc(100% - 880px);
+        width: 100%;
     }
 }
 

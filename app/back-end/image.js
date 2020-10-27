@@ -112,6 +112,38 @@ class Image extends Model {
                 "website",
                 "responsive"
             );
+        } else if (this.imageType === "tagImages" && this.id) {
+            dirPath = path.join(
+                this.siteDir,
+                "input",
+                "media",
+                "tags",
+                this.id.toString()
+            );
+            responsiveDirPath = path.join(
+                this.siteDir,
+                "input",
+                "media",
+                "tags",
+                this.id.toString(),
+                "responsive"
+            );
+        } else if (this.imageType === "authorImages" && this.id) {
+            dirPath = path.join(
+                this.siteDir,
+                "input",
+                "media",
+                "authors",
+                this.id.toString()
+            );
+            responsiveDirPath = path.join(
+                this.siteDir,
+                "input",
+                "media",
+                "authors",
+                this.id.toString(),
+                "responsive"
+            );
         } else {
             dirPath = path.join(
                 this.siteDir,
@@ -161,32 +193,34 @@ class Image extends Model {
 
         // Store main image
         try {
-            self.saveWebPImage(this.path, newPath).then(() => {
-                fs.readFile(this.path, function(err, data) {
-                    if (err) throw err;
-
-                    fs.writeFile(newPath, data, async function(err) {
+            self.saveWebPImage(this.path, newPath)
+                .then(() => {
+                    fs.readFile(this.path, function(err, data) {
                         if (err) throw err;
 
-                        let pathData = path.parse(newPath);
+                        fs.writeFile(newPath, data, async function(err) {
+                            if (err) throw err;
 
-                        // Save responsive images
-                        if (
-                            generateResponsiveImages &&
-                            self.allowedImageExtension(pathData.ext)
-                        ) {
-                            self.createResponsiveImages(
-                                newPath,
-                                self.imageType
-                            );
-                        }
+                            let pathData = path.parse(newPath);
 
-                        process.send({
-                            type: "image-copied"
+                            // Save responsive images
+                            if (
+                                generateResponsiveImages &&
+                                self.allowedImageExtension(pathData.ext)
+                            ) {
+                                self.createResponsiveImages(
+                                    newPath,
+                                    self.imageType
+                                );
+                            }
+
+                            process.send({
+                                type: "image-copied"
+                            });
                         });
                     });
-                });
-            }).catch(e => console.log(e));
+                })
+                .catch(e => console.log(e));
         } catch (err) {
             return {
                 size: [0, 0],
@@ -215,7 +249,7 @@ class Image extends Model {
         // Return the image dimensions and new location
         return {
             size: [dimensions.width, dimensions.height],
-            url: "file://" + normalizePath(newPath),
+            url: "file:///" + normalizePath(newPath),
             filename: filename,
             newPath: newPath
         };
@@ -324,6 +358,30 @@ class Image extends Model {
             dimensionsConfig = Utils.responsiveImagesData(
                 themeConfig,
                 "optionImages"
+            );
+        } else if (
+            imageType === "tagImages" &&
+            Utils.responsiveImagesConfigExists(themeConfig, imageType)
+        ) {
+            dimensions = Utils.responsiveImagesDimensions(
+                themeConfig,
+                "tagImages"
+            );
+            dimensionsConfig = Utils.responsiveImagesData(
+                themeConfig,
+                "tagImages"
+            );
+        } else if (
+            imageType === "authorImages" &&
+            Utils.responsiveImagesConfigExists(themeConfig, imageType)
+        ) {
+            dimensions = Utils.responsiveImagesDimensions(
+                themeConfig,
+                "authorImages"
+            );
+            dimensionsConfig = Utils.responsiveImagesData(
+                themeConfig,
+                "authorImages"
             );
         } else if (
             imageType === "contentImages" &&

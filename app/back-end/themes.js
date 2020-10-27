@@ -450,6 +450,18 @@ class Themes {
 
         // Load basic theme config
         let themeLocalConfig = UtilsHelper.loadThemeConfig(themeDir);
+        let computedOptionsConfig = Themes.loadComputedOptions(
+            themeDir,
+            themeLocalConfig
+        );
+
+        if (!themeLocalConfig.customConfig) {
+            themeLocalConfig.customConfig = [];
+        }
+
+        themeLocalConfig.customConfig = themeLocalConfig.customConfig.concat(
+            computedOptionsConfig
+        );
         defaultThemeConfig = UtilsHelper.mergeObjects(
             defaultThemeConfig,
             themeLocalConfig
@@ -639,6 +651,38 @@ class Themes {
                 }
             }
         }
+    }
+
+    /**
+     * Load option values from computed-options.js file (if exists)
+     */
+    static loadComputedOptions(inputDir, themeConfig) {
+        let computedOptionsConfig = [];
+        let computedOptionsPath = path.join(inputDir, "computed-options.js");
+        let overridedComputedOptionsPath = UtilsHelper.fileIsOverrided(
+            inputDir,
+            computedOptionsPath
+        );
+
+        if (overridedComputedOptionsPath) {
+            computedOptionsPath = overridedComputedOptionsPath;
+        }
+
+        if (!UtilsHelper.fileExists(computedOptionsPath)) {
+            return computedOptionsConfig;
+        }
+
+        try {
+            computedOptionsConfig = UtilsHelper.requireWithNoCache(
+                computedOptionsPath,
+                themeConfig
+            );
+        } catch (e) {
+            console.log("The theme computed-options.js file is corrupted");
+            return [];
+        }
+
+        return computedOptionsConfig;
     }
 }
 
