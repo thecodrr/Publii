@@ -346,7 +346,7 @@ export default {
                 useGravatar: false,
                 description: "",
                 metaTitle: "",
-                website,
+                website: "",
                 metaDescription: "",
                 template: "",
                 socialLinks: {
@@ -443,7 +443,7 @@ export default {
         });
     },
     methods: {
-        save() {
+        save(showPreview = false) {
             if (this.authorData.username === "") {
                 this.authorData.username = mainProcess.slug(
                     this.authorData.name
