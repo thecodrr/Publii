@@ -443,6 +443,18 @@ class EditorBridge {
                 }
             }
         });
+
+        this.tinymceEditor.ui.registry.addButton("publiipost", {
+            text: "Insert post",
+            tooltip: 'Insert/edit post',
+            onAction: () => {
+                let selectedNode = tinymce.activeEditor.selection.getNode();                
+                window.app.$bus.$emit('init-post-popup', {
+                    postID: this.postID,
+                    selection: selectedNode
+                });
+            }
+        });
         
         this.tinymceEditor.ui.registry.addButton("sourcecode", {
             icon: 'sourcecode',

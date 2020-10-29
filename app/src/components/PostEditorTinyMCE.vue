@@ -43,6 +43,7 @@
             <date-popup />
             <source-code-editor ref="source-code-editor" />
             <link-popup />
+            <post-popup />
             <link-toolbar />
             <gallery-popup />
             <inline-editor ref="inline-editor" />
@@ -60,6 +61,7 @@ import PostEditorWritersPanel from './post-editor/WritersPanel';
 import AuthorPopup from './post-editor/AuthorPopup';
 import DatePopup from './post-editor/DatePopup';
 import LinkPopup from './post-editor/LinkPopup';
+import PostPopup from './post-editor/PostPopup';
 import LinkToolbar from './post-editor/LinkToolbar';
 import GalleryPopup from './post-editor/GalleryPopup';
 import Editor from './post-editor/Editor';
@@ -79,6 +81,7 @@ export default {
         'author-popup': AuthorPopup,
         'date-popup': DatePopup,
         'link-popup': LinkPopup,
+        'post-popup': PostPopup,
         'gallery-popup': GalleryPopup,
         'link-toolbar': LinkToolbar,
         'editor': Editor,
