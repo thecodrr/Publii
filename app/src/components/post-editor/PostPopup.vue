@@ -25,6 +25,15 @@
                         class="link-popup-field-label" />
                 </field>
 
+                <field label="Custom post description:">
+                    <input
+                        slot="field"
+                        type="text"
+                        :spellcheck="$store.state.currentSite.config.spellchecking"
+                        v-model="postDescription"
+                        class="link-popup-field-label" />
+                </field>
+
                 <switcher
                     slot="field"
                     label="Set featured image as background"
@@ -58,6 +67,7 @@ export default {
         return {
             postID: 0,
             postTitle: "",
+            postDescription: "",
             selection: null,
             isVisible: false,
             setFeaturedImage: true,
@@ -83,6 +93,7 @@ export default {
         cleanPopup () {
             this.postID = 0;
             this.postTitle = "";
+            this.postDescription = "";
             this.selection = null;
             this.post = null;
             this.setFeaturedImage = true;
@@ -95,7 +106,7 @@ export default {
         },
         insertPost (response) {
             if (!response) return;
-            const {postID, postTitle, setFeaturedImage} = response;
+            const {postID, postTitle, postDescription, setFeaturedImage} = response;
             // const post = this.$store.state.currentSite.posts.find(post => post.id === postID);
             // const additionalPostData = JSON.parse(post.additional_data);
             // Send request for a post to the back-end
@@ -107,21 +118,21 @@ export default {
             // Load post data
             ipcRenderer.once('app-post-loaded', (event, data) => {
                 if (data) {
-                    console.log(this);
                     const post = data.posts[0];
                     const obj = {
-                        title: postTitle.length > 0 ? postTitle : post.title,
-                        content: this.getPostContent(post.text),
+                        title: postTitle,
+                        description: postDescription,
+                        // content: this.getPostContent(post.text),
                         url: '#INTERNAL_LINK#/post/' + postID,
                     };
                     let style = "";
                     if (setFeaturedImage) {
-                        let imagePath = `${data.mediaPath}/${postID}/${data.featuredImage.url}`;
+                        let imagePath = `${this.$store.state.currentSite.config.domain}/media/posts/${postID}/${data.featuredImage.url}`;
                         style = `style="background-image: url(${imagePath});"`;
                     }
-                    let start = `<div class="post-embed ${setFeaturedImage ? 'bg': ''}" ${style}>`;
+                    let start = `<div contenteditable="false" data-is-empty="false" class="post-embed ${setFeaturedImage ? 'bg': ''}" ${style}>`;
                     let title = `<strong class="post-embed-title"><a href="${obj.url}">${obj.title}</a></strong>`;
-                    let text = `${obj.content}`;
+                    let text = `<p>${obj.description}</p>`;
                     let continueReading = `<a class="post-embed-continue-reading" href="${obj.url}">Continue reading</a>`;
                     let end = `</div>`;
                     tinymce.activeEditor.selection.setContent(start + title + text + continueReading + end);
@@ -131,12 +142,14 @@ export default {
         getPostContent(text) {
             let readMoreElement = `<hr id="read-more">`;
             let readMoreIndex = text.indexOf(readMoreElement) + readMoreElement.length;
-            return text.substring(readMoreIndex, 500).trim() + "...</p>";
+            let doc = new DOMParser().parseFromString(text.substring(readMoreIndex, 500).trim() + "...</p>", 'text/html');
+            return `<p>${doc.body.textContent || ""}</p>`;
         },
         setPost () {
             let response = {
                 postID: this.post,
                 postTitle: this.postTitle,
+                postDescription: this.postDescription,
                 setFeaturedImage: this.setFeaturedImage
             };
             this.cleanPopup();
