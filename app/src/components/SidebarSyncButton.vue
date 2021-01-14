@@ -1,123 +1,131 @@
 <template>
     <div class="sidebar-sync">
-        <a
-            href="#"
-            class="sidebar-preview-link"
-            @click="renderPreview"
-        >
+        <a href="#" class="sidebar-preview-link" @click="gitSync">
+            Sync repo
+        </a>
+
+        <a href="#" class="sidebar-preview-link" @click="renderPreview">
             Preview your changes
         </a>
 
-        <a
-            href="#"
-            :class="cssClasses"
-            @click.prevent.stop="syncWebsite"
-        >
+        <a href="#" :class="cssClasses" @click.prevent.stop="syncWebsite">
             <span v-html="icon" class="sidebar-sync-link-icon"></span>
             <span>{{ status }}</span>
         </a>
 
-        <sub
-            v-if="hasSyncDate"
-            class="sidebar-sync-date">
-            <template v-if="!hasManualDeploy">Last sync: <span>{{ syncDate }}</span></template>
-            <template v-if="hasManualDeploy">Last rendered: <span>{{ syncDate }}</span></template>
+        <sub v-if="hasSyncDate" class="sidebar-sync-date">
+            <template v-if="!hasManualDeploy"
+                >Last sync: <span>{{ syncDate }}</span></template
+            >
+            <template v-if="hasManualDeploy"
+                >Last rendered: <span>{{ syncDate }}</span></template
+            >
         </sub>
     </div>
 </template>
 
 <script>
-import fs from 'fs';
-import SidebarIcons from './configs/sidebar-icons.js';
+import fs from "fs";
+import SidebarIcons from "./configs/sidebar-icons.js";
 
 export default {
-    name: 'sidebar-sync-button',
+    name: "sidebar-sync-button",
     data: function() {
         return {
             icon: SidebarIcons.DEFAULT,
-            redirectTo: 'sync'
+            redirectTo: "sync"
         };
     },
     computed: {
         cssClasses: function() {
             return {
-                'sidebar-sync-link': true
+                "sidebar-sync-link": true
             };
         },
         status: function() {
             let status = this.$store.state.components.sidebar.status;
 
-            if(status !== false) {
-                if(!this.checkDeploymentConfig()) {
-                    this.redirectTo = 'site-settings';
+            if (status !== false) {
+                if (!this.checkDeploymentConfig()) {
+                    this.redirectTo = "site-settings";
                     this.icon = SidebarIcons.NO_CONFIG;
-                    return 'Provide access data';
+                    return "Provide access data";
                 }
 
-                switch(status) {
-                    case 'preparing':
-                        this.redirectTo = 'sync';
+                switch (status) {
+                    case "preparing":
+                        this.redirectTo = "sync";
                         this.icon = SidebarIcons.PREPARING;
-                        return 'Preparing files';
-                    case 'prepared':
-                        this.redirectTo = 'sync';
+                        return "Preparing files";
+                    case "prepared":
+                        this.redirectTo = "sync";
                         this.icon = SidebarIcons.PREPARED;
-                        return 'Prepared to upload';
-                    case 'not-prepared':
-                        this.redirectTo = 'sync';
+                        return "Prepared to upload";
+                    case "not-prepared":
+                        this.redirectTo = "sync";
                         this.icon = SidebarIcons.NOT_PREPARED;
-                        return 'Preparation error';
-                    case 'syncing':
-                        this.redirectTo = 'sync';
+                        return "Preparation error";
+                    case "syncing":
+                        this.redirectTo = "sync";
                         this.icon = SidebarIcons.SYNCING;
-                        return 'Sync in progress';
-                    case 'synced':
-                    case 'not-synced':
-                        this.redirectTo = 'sync';
+                        return "Sync in progress";
+                    case "synced":
+                    case "not-synced":
+                        this.redirectTo = "sync";
                         this.icon = SidebarIcons.NOT_SYNCED;
-                        return 'Sync your website';
+                        return "Sync your website";
                 }
-            } else if(!this.checkDeploymentConfig()) {
-                this.redirectTo = 'site-settings';
+            } else if (!this.checkDeploymentConfig()) {
+                this.redirectTo = "site-settings";
                 this.icon = SidebarIcons.PROVIDE_ACCESS;
-                return 'Configure Server';
+                return "Configure Server";
             } else {
-                this.redirectTo = 'sync';
+                this.redirectTo = "sync";
                 this.icon = SidebarIcons.SYNC;
-                return 'Sync your website';
+                return "Sync your website";
             }
 
-            this.redirectTo = 'sync';
-            return 'Site is in sync';
+            this.redirectTo = "sync";
+            return "Site is in sync";
         },
         hasSyncDate: function() {
-            if(!this.$store.state.currentSite.config) {
+            if (!this.$store.state.currentSite.config) {
                 return false;
             }
 
-            return !!(this.$store.state.currentSite.config.syncDate);
+            return !!this.$store.state.currentSite.config.syncDate;
         },
         syncDate: function() {
             let syncDate = this.$store.state.currentSite.config.syncDate;
 
-            if(this.$store.state.app.config.timeFormat && this.$store.state.app.config.timeFormat == 24) {
-                return this.$moment(syncDate).format('MMM DD, YYYY HH:mm:ss');
+            if (
+                this.$store.state.app.config.timeFormat &&
+                this.$store.state.app.config.timeFormat == 24
+            ) {
+                return this.$moment(syncDate).format("MMM DD, YYYY HH:mm:ss");
             } else {
-                return this.$moment(syncDate).format('MMM DD, YYYY hh:mm:ss a');
+                return this.$moment(syncDate).format("MMM DD, YYYY hh:mm:ss a");
             }
         },
-        hasManualDeploy () {
-            return this.$store.state.currentSite.config.deployment.protocol === 'manual';
+        hasManualDeploy() {
+            return (
+                this.$store.state.currentSite.config.deployment.protocol ===
+                "manual"
+            );
         }
     },
     methods: {
+        gitSync: function() {
+            this.$bus.$emit("git-sync-popup-display");
+        },
         renderPreview: function() {
             if (!this.$store.state.currentSite.config.theme) {
                 let siteName = this.$store.state.currentSite.config.name;
 
-                this.$bus.$emit('confirm-display', {
-                    message: 'You haven\'t selected any theme. Please go to the Settings and select the theme first.',
-                    okLabel: 'Go to settings',
+                this.$bus.$emit("confirm-display", {
+                    message:
+                        "You haven't selected any theme. Please go to the Settings and select the theme first.",
+                    okLabel: "Go to settings",
                     okClick: () => {
                         this.$router.push(`/site/${siteName}/settings/`);
                     }
@@ -125,10 +133,14 @@ export default {
                 return;
             }
 
-            if (this.$store.state.app.config.previewLocation !== '' && !fs.existsSync(this.$store.state.app.config.previewLocation)) {
-                this.$bus.$emit('confirm-display', {
-                    message: 'The preview catalog does not exist. Please go to the App Settings and select the correct preview directory first.',
-                    okLabel: 'Go to app settings',
+            if (
+                this.$store.state.app.config.previewLocation !== "" &&
+                !fs.existsSync(this.$store.state.app.config.previewLocation)
+            ) {
+                this.$bus.$emit("confirm-display", {
+                    message:
+                        "The preview catalog does not exist. Please go to the App Settings and select the correct preview directory first.",
+                    okLabel: "Go to app settings",
                     okClick: () => {
                         this.$router.push(`/app-settings/`);
                     }
@@ -136,55 +148,59 @@ export default {
                 return;
             }
 
-            this.$bus.$emit('rendering-popup-display');
+            this.$bus.$emit("rendering-popup-display");
         },
         syncWebsite: function(e) {
             if (e.screenX === 0 && e.screenY === 0) {
                 return;
             }
 
-            if (this.redirectTo === 'sync') {
+            if (this.redirectTo === "sync") {
                 if (!this.$store.state.currentSite.config.theme) {
                     let siteName = this.$store.state.currentSite.config.name;
 
-                    this.$bus.$emit('confirm-display', {
-                        message: 'You haven\'t selected any theme. Please go to the Settings and select the theme first.',
-                        okLabel: 'Go to settings',
+                    this.$bus.$emit("confirm-display", {
+                        message:
+                            "You haven't selected any theme. Please go to the Settings and select the theme first.",
+                        okLabel: "Go to settings",
                         okClick: () => {
                             this.$router.push(`/site/${siteName}/settings/`);
                         }
-                    })
+                    });
                     return;
                 }
 
-                this.$bus.$emit('sync-popup-display');
-            } else if (this.redirectTo === 'site-settings') {
+                this.$bus.$emit("sync-popup-display");
+            } else if (this.redirectTo === "site-settings") {
                 let siteName = this.$store.state.currentSite.config.name;
 
                 this.$router.push({
-                    path: '/site/' + siteName + '/settings/server'
+                    path: "/site/" + siteName + "/settings/server"
                 });
             }
         },
         checkDeploymentConfig() {
             let config = this.$store.state.currentSite.config;
 
-            if(!config || !config.deployment) {
+            if (!config || !config.deployment) {
                 return false;
             }
 
-            if(config.deployment.protocol === '' || config.deployment.domain === '') {
+            if (
+                config.deployment.protocol === "" ||
+                config.deployment.domain === ""
+            ) {
                 return false;
             }
 
             return true;
         }
     }
-}
+};
 </script>
 
 <style lang="scss">
-@import '../scss/variables.scss';
+@import "../scss/variables.scss";
 
 .sidebar {
     &-sync {
@@ -194,14 +210,14 @@ export default {
         right: 4rem;
 
         &-icon {
-            fill: var(--white);           
+            fill: var(--white);
         }
 
         & > sub {
             color: var(--sidebar-link-color);
             display: block;
             font-size: 1.3rem;
-            letter-spacing: .5px;
+            letter-spacing: 0.5px;
             margin: 0 -2.5rem;
             opacity: var(--sidebar-link-opacity);
             padding: 1.5rem 0 1rem 0;
@@ -219,11 +235,11 @@ export default {
             font-weight: 500;
             justify-content: center;
             padding: 1.4rem 2.4rem;
-            position: relative;  
-            
+            position: relative;
+
             // sync cloud icon
             .sidebar-sync-icon {
-                height: 2.2rem;  
+                height: 2.2rem;
                 display: inherit;
                 width: 3rem;
 
@@ -257,15 +273,15 @@ export default {
                     }
                 }
             }
-            
+
             // interjection mark icon
             .sidebar-interjection-icon {
                 display: block;
-                height: 2.3rem;                
+                height: 2.3rem;
                 width: 2.4rem;
 
                 path {
-                    fill: var(--white);                   
+                    fill: var(--white);
                 }
             }
 
@@ -279,43 +295,47 @@ export default {
                     fill: $color-helper-6;
                 }
             }
-            
-            &-icon {               
+
+            &-icon {
                 display: block;
-                height: 100%;  
+                height: 100%;
                 margin-right: 1.2rem;
                 width: auto;
             }
         }
 
-        &-synced {}
-        &-not-synced {}
+        &-synced {
+        }
+        &-not-synced {
+        }
         &-preparing,
         &-prepared,
-        &-syncing {}
+        &-syncing {
+        }
         &-not-prepared,
-        &-noftp {}
-        
-        &-preparing { 
-            display: block;              
-            height: 2.1rem;           
+        &-noftp {
+        }
+
+        &-preparing {
+            display: block;
+            height: 2.1rem;
             width: 2.1rem;
-            
+
             & > span {
-                animation: spin .9s infinite linear;
-                border-top: 2px solid rgba(255,255,255, .2);
-                border-right: 2px solid rgba(255,255,255, .2);
-                border-bottom: 2px solid rgba(255,255,255, .2);
+                animation: spin 0.9s infinite linear;
+                border-top: 2px solid rgba(255, 255, 255, 0.2);
+                border-right: 2px solid rgba(255, 255, 255, 0.2);
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
                 border-left: 2px solid var(--white);
                 border-radius: 50%;
-                display: inline-block;   
+                display: inline-block;
                 height: 2.1rem;
-                width: 2.1rem;                 
-                
+                width: 2.1rem;
+
                 &::after {
                     border-radius: 50%;
                     content: "";
-                    display: block;                                      
+                    display: block;
                 }
             }
         }
@@ -336,12 +356,14 @@ export default {
         }
 
         &:hover {
-            border-color: var(--sidebar-preview-btn-border-hover-color) !important;
+            border-color: var(
+                --sidebar-preview-btn-border-hover-color
+            ) !important;
             color: var(--sidebar-preview-btn-hover-color) !important;
         }
 
         &.is-disabled {
-            opacity: .75;
+            opacity: 0.75;
             pointer-events: none;
         }
     }

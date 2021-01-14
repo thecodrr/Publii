@@ -1,31 +1,33 @@
 <template>
-    <div
-        v-if="isVisible"
-        class="overlay">
+    <div v-if="isVisible" class="overlay">
         <div class="popup">
-            <p
-                :class="cssClasses"
-                v-html="message">
-            </p>
+            <p :class="cssClasses" v-html="message"></p>
 
             <text-input
                 v-if="hasInput"
                 :type="inputIsPassword ? 'password' : 'text'"
                 :value="defaultText"
                 :spellcheck="false"
-                ref="input" />
+                ref="input"
+            />
 
             <div class="buttons">
                 <p-button
-                    :type="isDanger ? 'medium no-border-radius half-width danger' : 'medium no-border-radius half-width'"
+                    :type="
+                        isDanger
+                            ? 'medium no-border-radius half-width danger'
+                            : 'medium no-border-radius half-width'
+                    "
                     :onClick="onOk"
-                    ref="okButton">
+                    ref="okButton"
+                >
                     {{ okLabel }}
                 </p-button>
 
                 <p-button
                     type="medium no-border-radius half-width cancel-popup"
-                    :onClick="onCancel">
+                    :onClick="onCancel"
+                >
                     {{ cancelLabel }}
                 </p-button>
             </div>
@@ -35,33 +37,33 @@
 
 <script>
 export default {
-    name: 'confirm',
-    data () {
+    name: "confirm",
+    data() {
         return {
             isVisible: false,
             hasInput: false,
             inputIsPassword: false,
-            message: '',
+            message: "",
             textCentered: false,
             okClick: () => false,
             cancelClick: () => false,
-            okLabel: 'OK',
+            okLabel: "OK",
             isDanger: false,
-            cancelLabel: 'Cancel',
-            defaultText: ''
+            cancelLabel: "Cancel",
+            defaultText: ""
         };
     },
     computed: {
-        cssClasses () {
+        cssClasses() {
             return {
-                'message': true,
-                'text-centered': this.textCentered
+                message: true,
+                "text-centered": this.textCentered
             };
         }
     },
-    mounted () {
-        this.$bus.$on('confirm-display', (config) => {
-            document.body.classList.add('has-popup-visible');
+    mounted() {
+        this.$bus.$on("confirm-display", config => {
+            document.body.classList.add("has-popup-visible");
 
             setTimeout(() => {
                 this.isVisible = true;
@@ -71,17 +73,17 @@ export default {
                 this.inputIsPassword = config.inputIsPassword || false;
                 this.okLabel = config.okLabel || "OK";
                 this.cancelLabel = config.cancelLabel || "Cancel";
-                this.defaultText = config.defaultText || "";   
-                this.isDanger = config.isDanger || false;             
-                
-                if(config.okClick) {
+                this.defaultText = config.defaultText || "";
+                this.isDanger = config.isDanger || false;
+
+                if (config.okClick) {
                     this.okClick = config.okClick;
                 } else {
                     this.okClick = () => false;
                 }
 
-                if(config.cancelClick) {
-                    this.cancelClick = config.cancelClick
+                if (config.cancelClick) {
+                    this.cancelClick = config.cancelClick;
                 } else {
                     this.cancelClick = () => false;
                 }
@@ -89,67 +91,67 @@ export default {
                 setTimeout(() => {
                     if (config.hasInput) {
                         console.log(this.$refs);
-                        this.$refs.input.$el.querySelector('input').focus();
+                        this.$refs.input.$el.querySelector("input").focus();
                     }
                 }, 100);
             }, 0);
         });
-        
-        document.body.addEventListener('keydown', this.onDocumentKeyDown);
+
+        document.body.addEventListener("keydown", this.onDocumentKeyDown);
     },
     methods: {
-        onOk () {
+        onOk() {
             this.isVisible = false;
-            document.body.classList.remove('has-popup-visible');
+            document.body.classList.remove("has-popup-visible");
 
-            if(this.hasInput) {
+            if (this.hasInput) {
                 this.okClick(this.$refs.input.content);
             } else {
                 this.okClick();
             }
         },
-        onCancel () {
+        onCancel() {
             this.isVisible = false;
-            document.body.classList.remove('has-popup-visible');
+            document.body.classList.remove("has-popup-visible");
             this.cancelClick();
         },
-        onDocumentKeyDown (e) {
-            if (e.code === 'Enter' && this.isVisible) {
+        onDocumentKeyDown(e) {
+            if (e.code === "Enter" && this.isVisible) {
                 this.onEnterKey();
             }
         },
-        onEnterKey () {
+        onEnterKey() {
             this.onOk();
 
             setTimeout(() => {
                 this.isVisible = false;
-                document.body.classList.remove('has-popup-visible');
+                document.body.classList.remove("has-popup-visible");
             }, 100);
         }
     },
-    beforeDestroy () {
-        this.$bus.$off('confirm-display');
-        document.body.removeEventListener('keydown', this.onDocumentKeyDown);
+    beforeDestroy() {
+        this.$bus.$off("confirm-display");
+        document.body.removeEventListener("keydown", this.onDocumentKeyDown);
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-@import '../../scss/variables.scss';
-@import '../../scss/popup-common.scss';
+@import "../../scss/variables.scss";
+@import "../../scss/popup-common.scss";
 
 .overlay {
     z-index: 100005;
 }
 
-.popup {   
+.popup {
     max-width: 60rem;
-    min-width: 60rem;    
-    padding: 4rem;   
+    min-width: 60rem;
+    padding: 4rem;
 }
 
 .message {
-    padding: 0;   
+    padding: 0;
 
     & + * {
         margin-top: 2rem;

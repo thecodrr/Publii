@@ -1,9 +1,16 @@
 <template>
     <div
         id="app"
-        :class="{ 'app-view': true, 'use-wide-scrollbars': useWideScrollbars }">
+        :class="{ 'app-view': true, 'use-wide-scrollbars': useWideScrollbars }"
+    >
         <message />
-        <topbar-notification v-if="!splashScreenDisplayed && !postEditorDisplayed && $route.path !== '/site/!/posts'" />
+        <topbar-notification
+            v-if="
+                !splashScreenDisplayed &&
+                    !postEditorDisplayed &&
+                    $route.path !== '/site/!/posts'
+            "
+        />
         <topbar v-if="!splashScreenDisplayed && !postEditorDisplayed" />
         <section>
             <router-view />
@@ -16,62 +23,61 @@
         <error-popup />
         <sites-popup />
         <sync-popup />
+        <git-sync-popup />
         <subscription-popup />
     </div>
 </template>
 
 <script>
-import { remote } from 'electron';
-import { mapGetters } from 'vuex';
-import TopBar from './TopBar';
-import TopBarAppBar from './TopBarAppBar';
-import TopBarNotification from './TopBarNotification';
-import Message from './Message';
-import RenderingPopup from './RenderingPopup';
-import RegenerateThumbnailsPopup from './RegenerateThumbnailsPopup';
-import SitesPopup from './SitesPopup';
-import SyncPopup from './SyncPopup';
-import ErrorPopup from './ErrorPopup';
-import SubscriptionPopup from './SubscriptionPopup';
-const mainProcess = remote.require('./main');
+import { remote } from "electron";
+import { mapGetters } from "vuex";
+import TopBar from "./TopBar";
+import TopBarAppBar from "./TopBarAppBar";
+import TopBarNotification from "./TopBarNotification";
+import Message from "./Message";
+import RenderingPopup from "./RenderingPopup";
+import RegenerateThumbnailsPopup from "./RegenerateThumbnailsPopup";
+import SitesPopup from "./SitesPopup";
+import SyncPopup from "./SyncPopup";
+import GitSyncPopup from "./GitSyncPopup";
+import ErrorPopup from "./ErrorPopup";
+import SubscriptionPopup from "./SubscriptionPopup";
+const mainProcess = remote.require("./main");
 const Menu = remote.Menu;
 
 export default {
-    name: 'app',
-    props: [
-        'initialData'
-    ],
+    name: "app",
+    props: ["initialData"],
     components: {
-        'message': Message,
-        'topbar': TopBar,
-        'topbar-appbar': TopBarAppBar,
-        'topbar-notification': TopBarNotification,
-        'rendering-popup': RenderingPopup,
-        'regenerate-thumbnails-popup': RegenerateThumbnailsPopup,
-        'error-popup': ErrorPopup,
-        'sites-popup': SitesPopup,
-        'sync-popup': SyncPopup,
-        'subscription-popup': SubscriptionPopup
+        message: Message,
+        topbar: TopBar,
+        "topbar-appbar": TopBarAppBar,
+        "topbar-notification": TopBarNotification,
+        "rendering-popup": RenderingPopup,
+        "regenerate-thumbnails-popup": RegenerateThumbnailsPopup,
+        "error-popup": ErrorPopup,
+        "sites-popup": SitesPopup,
+        "sync-popup": SyncPopup,
+        "git-sync-popup": GitSyncPopup,
+        "subscription-popup": SubscriptionPopup
     },
     computed: {
-        ...mapGetters([
-            'siteNames'
-        ]),
-        splashScreenDisplayed () {
-            if(this.$route.path === '/') {
+        ...mapGetters(["siteNames"]),
+        splashScreenDisplayed() {
+            if (this.$route.path === "/") {
                 return true;
             }
 
             return false;
         },
-        postEditorDisplayed () {
-            if(this.$route.path.indexOf('/posts/editor/') > -1) {
+        postEditorDisplayed() {
+            if (this.$route.path.indexOf("/posts/editor/") > -1) {
                 return true;
             }
 
             return false;
         },
-        useWideScrollbars () {
+        useWideScrollbars() {
             return this.$store.state.app.config.wideScrollbars;
         }
     },
@@ -84,98 +90,125 @@ export default {
         this.integrateTopBar();
 
         // Display initial screen after 2sec
-        if(this.$store.state.app.config.licenseAccepted) {
+        if (this.$store.state.app.config.licenseAccepted) {
             setTimeout(() => this.showInitialScreen(), 2000);
         }
 
-        this.$bus.$on('license-accepted', this.showInitialScreen);
+        this.$bus.$on("license-accepted", this.showInitialScreen);
     },
     beforeDestroy: function() {
-        this.$bus.$off('license-accepted');
-        ipcRenderer.removeAllListeners('app-license-accepted');
+        this.$bus.$off("license-accepted");
+        ipcRenderer.removeAllListeners("app-license-accepted");
     },
     methods: {
         // Block drag'n'drop redirects
         disableDragNDrop: function() {
-            document.addEventListener('dragover', event => event.preventDefault());
-            document.addEventListener('drop', event => event.preventDefault());
+            document.addEventListener("dragover", event =>
+                event.preventDefault()
+            );
+            document.addEventListener("drop", event => event.preventDefault());
         },
 
         // Add to <body> additional informations
         setEnvironmentInfo: function() {
-            document.body.setAttribute('data-node-version', process.versions.node);
-            document.body.setAttribute('data-chrome-version', process.versions.chrome);
-            document.body.setAttribute('data-electron-version', process.versions.electron);
-            document.body.setAttribute('data-os', process.platform === 'darwin' ? 'osx' : process.platform === 'linux' ? 'linux' : 'win');
-            document.body.setAttribute('data-env', process.env.NODE_ENV);
+            document.body.setAttribute(
+                "data-node-version",
+                process.versions.node
+            );
+            document.body.setAttribute(
+                "data-chrome-version",
+                process.versions.chrome
+            );
+            document.body.setAttribute(
+                "data-electron-version",
+                process.versions.electron
+            );
+            document.body.setAttribute(
+                "data-os",
+                process.platform === "darwin"
+                    ? "osx"
+                    : process.platform === "linux"
+                    ? "linux"
+                    : "win"
+            );
+            document.body.setAttribute("data-env", process.env.NODE_ENV);
         },
 
         // Set initial application state tree
         setState: function() {
-            this.$store.commit('init', this.initialData);
+            this.$store.commit("init", this.initialData);
         },
 
         // Disable refresh shortcuts and Dev Tools shortcuts
         setupMenu: function() {
-            if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV === "development") {
                 return;
             }
 
-            if (process.platform === 'linux') {
+            if (process.platform === "linux") {
                 Menu.setApplicationMenu(null);
                 return;
             }
 
-            const template = [{
-                label: "Publii",
-                submenu: [{
-                    label: "About Application",
-                    selector: "orderFrontStandardAboutPanel:"
-                }, {
-                    type: "separator"
-                }, {
-                    label: "Quit",
-                    accelerator: "CmdOrCtrl+Q",
-                    click: () => { mainProcess.quitApp() }
-                }]
-            }, {
-                label: "Edit",
-                submenu: [
-                    {
-                        label: "Undo",
-                        accelerator: "CmdOrCtrl+Z",
-                        selector: "undo:"
-                    },
-                    {
-                        label: "Redo",
-                        accelerator: "Shift+CmdOrCtrl+Z",
-                        selector: "redo:"
-                    },
-                    {
-                        type: "separator"
-                    },
-                    {
-                        label: "Cut",
-                        accelerator: "CmdOrCtrl+X",
-                        selector: "cut:"
-                    },
-                    {
-                        label: "Copy",
-                        accelerator: "CmdOrCtrl+C",
-                        selector: "copy:"
-                    },
-                    {
-                        label: "Paste",
-                        accelerator: "CmdOrCtrl+V",
-                        selector: "paste:"
-                    },
-                    {
-                        label: "Select All",
-                        accelerator: "CmdOrCtrl+A",
-                        selector: "selectAll:"
-                    }
-                ]
-            }];
+            const template = [
+                {
+                    label: "Publii",
+                    submenu: [
+                        {
+                            label: "About Application",
+                            selector: "orderFrontStandardAboutPanel:"
+                        },
+                        {
+                            type: "separator"
+                        },
+                        {
+                            label: "Quit",
+                            accelerator: "CmdOrCtrl+Q",
+                            click: () => {
+                                mainProcess.quitApp();
+                            }
+                        }
+                    ]
+                },
+                {
+                    label: "Edit",
+                    submenu: [
+                        {
+                            label: "Undo",
+                            accelerator: "CmdOrCtrl+Z",
+                            selector: "undo:"
+                        },
+                        {
+                            label: "Redo",
+                            accelerator: "Shift+CmdOrCtrl+Z",
+                            selector: "redo:"
+                        },
+                        {
+                            type: "separator"
+                        },
+                        {
+                            label: "Cut",
+                            accelerator: "CmdOrCtrl+X",
+                            selector: "cut:"
+                        },
+                        {
+                            label: "Copy",
+                            accelerator: "CmdOrCtrl+C",
+                            selector: "copy:"
+                        },
+                        {
+                            label: "Paste",
+                            accelerator: "CmdOrCtrl+V",
+                            selector: "paste:"
+                        },
+                        {
+                            label: "Select All",
+                            accelerator: "CmdOrCtrl+A",
+                            selector: "selectAll:"
+                        }
+                    ]
+                }
+            ];
 
             const menu = Menu.buildFromTemplate(template);
             Menu.setApplicationMenu(menu);
@@ -186,16 +219,21 @@ export default {
         showInitialScreen: function() {
             let startScreen = this.$store.state.app.config.startScreen;
             let siteNames = this.siteNames;
-            let siteToDisplay = '!';
-            let lastOpenedWebsite = window.localStorage.getItem('publii-last-opened-website');
+            let siteToDisplay = "!";
+            let lastOpenedWebsite = window.localStorage.getItem(
+                "publii-last-opened-website"
+            );
 
             if (siteNames.length > 0) {
                 if (startScreen && siteNames.indexOf(startScreen) > -1) {
                     siteToDisplay = startScreen;
-                } else if (lastOpenedWebsite !== null && siteNames.indexOf(lastOpenedWebsite) > -1) {
+                } else if (
+                    lastOpenedWebsite !== null &&
+                    siteNames.indexOf(lastOpenedWebsite) > -1
+                ) {
                     siteToDisplay = lastOpenedWebsite;
                 } else {
-                    siteToDisplay = '!';
+                    siteToDisplay = "!";
                 }
             }
 
@@ -204,8 +242,11 @@ export default {
 
         // Show specific website
         showWebsite: function(siteToDisplay) {
-            if(siteToDisplay !== '' && siteToDisplay !== '!') {
-                window.localStorage.setItem('publii-last-opened-website', siteToDisplay);
+            if (siteToDisplay !== "" && siteToDisplay !== "!") {
+                window.localStorage.setItem(
+                    "publii-last-opened-website",
+                    siteToDisplay
+                );
             }
 
             this.$router.push({ path: `/site/${siteToDisplay}` });
@@ -213,27 +254,27 @@ export default {
 
         // Check for helper click events for TopBar
         integrateTopBar: function() {
-            document.body.addEventListener('click', e => {
-                this.$bus.$emit('document-body-clicked');
+            document.body.addEventListener("click", e => {
+                this.$bus.$emit("document-body-clicked");
             });
         }
     },
-    beforeDestroy () {
-        this.$bus.$off('license-accepted');
+    beforeDestroy() {
+        this.$bus.$off("license-accepted");
     }
-}
+};
 </script>
 
 <style lang="scss">
-@import '../scss/vendor/normalize.css';
-@import '../scss/vendor/vue-multiselect.scss';
-@import '../scss/variables.scss';
-@import '../scss/css-variables.scss';
-@import '../scss/mixins.scss';
-@import '../scss/global.scss';
-@import '../scss/forms.scss';
-@import '../scss/scope-fix.scss';
-@import '../scss/codemirror.scss';
+@import "../scss/vendor/normalize.css";
+@import "../scss/vendor/vue-multiselect.scss";
+@import "../scss/variables.scss";
+@import "../scss/css-variables.scss";
+@import "../scss/mixins.scss";
+@import "../scss/global.scss";
+@import "../scss/forms.scss";
+@import "../scss/scope-fix.scss";
+@import "../scss/codemirror.scss";
 
 /*
  * Main container for the app
@@ -278,7 +319,7 @@ export default {
     }
 }
 
-body[data-os="win"] {    
+body[data-os="win"] {
     .app {
         &-view {
             border: 1px solid var(--icon-secondary-color);
@@ -306,14 +347,14 @@ body[data-os="linux"] {
         }
     }
 }
-    
+
 /*
  * Responsive improvements
  */
 
 @media (max-width: 1400px) {
     .app {
-        &-site-sidebar {        
+        &-site-sidebar {
             width: 32rem;
         }
     }
