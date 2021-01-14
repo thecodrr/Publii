@@ -1,12 +1,10 @@
 <template>
-    <div 
+    <div
         :class="{ 'sites-popup': true, 'is-hidden': !isVisible }"
-        @click="hide">
+        @click="hide"
+    >
         <p-header @click.native.stop>
-            <p-button
-                type="outline"
-                slot="buttons"
-                :onClick="hide">
+            <p-button type="outline" slot="buttons" :onClick="hide">
                 Go back
             </p-button>
 
@@ -14,66 +12,71 @@
                 icon="add-site-mono"
                 type="primary icon"
                 slot="buttons"
-                :onClick="addNewWebsite">
+                :onClick="addNewWebsite"
+            >
                 Add new website
             </p-button>
         </p-header>
-        <div class="sites-popup-container" @click.stop>            
-           <sites-search ref="search" />
-           <sites-list />            
+        <div class="sites-popup-container" @click.stop>
+            <sites-search ref="search" />
+            <sites-list />
         </div>
     </div>
 </template>
 
 <script>
-import SitesSearch from './SitesSearch';
-import SitesList from './SitesList';
+import SitesSearch from "./SitesSearch";
+import SitesList from "./SitesList";
 
 export default {
-    name: 'sites-popup',
+    name: "sites-popup",
     components: {
-        'sites-search': SitesSearch,
-        'sites-list': SitesList
+        "sites-search": SitesSearch,
+        "sites-list": SitesList
     },
-    data () {
+    data() {
         return {
             isVisible: false
-        }
+        };
     },
-    mounted () {
-        this.$bus.$on('sites-popup-show', this.show);
-        this.$bus.$on('sites-popup-hide', this.hide);
+    mounted() {
+        this.$bus.$on("sites-popup-show", this.show);
+        this.$bus.$on("sites-popup-hide", this.hide);
     },
     methods: {
-        show (e) {
+        show(e) {
             this.isVisible = true;
 
             setTimeout(() => {
-                this.$refs['search'].$refs['search-input'].$refs['input'].value = '';
-                this.$refs['search'].$refs['search-input'].$refs['input'].focus();
-                this.$bus.$emit('sites-list-filtered', '');
+                this.$refs["search"].$refs["search-input"].$refs[
+                    "input"
+                ].value = "";
+                this.$refs["search"].$refs["search-input"].$refs[
+                    "input"
+                ].focus();
+                this.$bus.$emit("sites-list-filtered", "");
             }, 100);
         },
-        hide () {
+        hide() {
             this.isVisible = false;
         },
-        addNewWebsite (e) {
-            this.$router.push('/site/!');
+        addNewWebsite(e) {
+            this.$router.push("/site/!");
 
             setTimeout(() => {
                 this.isVisible = false;
             }, 500);
         }
     },
-    beforeDestroy () {
-        this.$bus.$off('sites-popup-show', this.show);
-        this.$bus.$off('sites-popup-hide', this.hide);
+    beforeDestroy() {
+        this.$bus.$off("sites-popup-show", this.show);
+        this.$bus.$off("sites-popup-hide", this.hide);
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-@import '../scss/variables.scss';
+@import "../scss/variables.scss";
 
 .sites-popup {
     background: var(--bg-primary);
@@ -84,7 +87,7 @@ export default {
     pointer-events: auto;
     position: fixed;
     top: 0;
-    transition: all .25s ease-out;
+    transition: all 0.25s ease-out;
     width: 100vw;
     z-index: 99999;
 
@@ -92,7 +95,7 @@ export default {
         pointer-events: none;
         opacity: 0;
     }
-    
+
     &-container {
         margin: auto;
         max-width: $wrapper;

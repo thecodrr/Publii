@@ -42,6 +42,8 @@ import SyncPopup from "./SyncPopup";
 import GitSyncPopup from "./GitSyncPopup";
 import ErrorPopup from "./ErrorPopup";
 import SubscriptionPopup from "./SubscriptionPopup";
+import gitP, { SimpleGit } from "simple-git/promise";
+
 const mainProcess = remote.require("./main");
 const Menu = remote.Menu;
 
@@ -91,7 +93,7 @@ export default {
 
         // Display initial screen after 2sec
         if (this.$store.state.app.config.licenseAccepted) {
-            setTimeout(() => this.showInitialScreen(), 2000);
+            setTimeout(() => this.checkGitStatus(), 400);
         }
 
         this.$bus.$on("license-accepted", this.showInitialScreen);
@@ -214,6 +216,22 @@ export default {
             Menu.setApplicationMenu(menu);
         },
 
+        checkGitStatus: async function() {
+            const gitPath = this.$store.state.app.config.sitesLocation;
+            const git = gitP({
+                baseDir: gitPath,
+                binary: "git",
+                maxConcurrentProcesses: 6
+            });
+            await git.fetch();
+            const status = await git.status();
+            if (status.behind) {
+                this.$router.push({ path: `/sync` });
+            } else {
+                this.showInitialScreen();
+            }
+        },
+
         // Show site screen when there is only one website
         // or user wants to load directly specific website
         showInitialScreen: function() {
@@ -236,7 +254,6 @@ export default {
                     siteToDisplay = "!";
                 }
             }
-
             this.showWebsite(siteToDisplay);
         },
 

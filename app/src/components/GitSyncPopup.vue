@@ -2,7 +2,7 @@
     <div class="overlay as-page" v-if="isVisible">
         <div class="popup sync">
             <div v-if="isInSync && noIssues" class="sync-success">
-                <h1>No changes left to push.</h1>
+                <h1>No changes to push.</h1>
 
                 <div class="progress-bars-wrapper">
                     <progress-bar
@@ -145,7 +145,7 @@ export default {
             this.uploadError = false;
             this.noIssues = true;
 
-            const gitPath = `${this.$store.state.currentSite.siteDir}/../../`;
+            const gitPath = `${this.$store.state.app.config.sitesLocation}`;
 
             this.git = gitP({
                 baseDir: gitPath,

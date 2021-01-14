@@ -11,20 +11,20 @@
 </template>
 
 <script>
-import { ipcRenderer, remote } from 'electron';
-import SiteAddForm from './SiteAddForm';
-import Sidebar from './Sidebar';
-const mainProcess = remote.require('./main.js');
+import { ipcRenderer, remote } from "electron";
+import SiteAddForm from "./SiteAddForm";
+import Sidebar from "./Sidebar";
+const mainProcess = remote.require("./main.js");
 
 export default {
-    name: 'site',
+    name: "site",
     components: {
-        'add-website': SiteAddForm,
-        'sidebar': Sidebar
+        "add-website": SiteAddForm,
+        sidebar: Sidebar
     },
     data: function() {
         return {
-            currentSite: '',
+            currentSite: "",
             siteIsLoaded: false
         };
     },
@@ -33,33 +33,37 @@ export default {
             return this.$route.params.name;
         },
         isEmpty: function() {
-            if(this.currentSite !== this.siteName && this.siteName !== '!' && !this.$store.state.editorOpened) {
+            if (
+                this.currentSite !== this.siteName &&
+                this.siteName !== "!" &&
+                !this.$store.state.editorOpened
+            ) {
                 this.switchSite(this.siteName);
             }
 
             if (this.$store.state.editorOpened) {
-                this.$store.commit('setEditorOpenState', false);
+                this.$store.commit("setEditorOpenState", false);
 
                 setTimeout(() => {
-                    this.$bus.$emit('site-view-restored');
+                    this.$bus.$emit("site-view-restored");
                 }, 0);
             }
 
-            return this.siteName === '!';
+            return this.siteName === "!";
         },
         cssClasses: function() {
             return {
-                'site': true,
-                'is-empty': this.isEmpty
+                site: true,
+                "is-empty": this.isEmpty
             };
         }
     },
-    mounted () {
-        this.$bus.$on('add-website-form-displayed', () => {
-            this.currentSite = '';
+    mounted() {
+        this.$bus.$on("add-website-form-displayed", () => {
+            this.currentSite = "";
         });
 
-        this.$bus.$on('site-loaded', this.whenSiteLoaded);
+        this.$bus.$on("site-loaded", this.whenSiteLoaded);
     },
     methods: {
         switchSite: function(siteName) {
@@ -67,19 +71,20 @@ export default {
             this.currentSite = siteName;
             this.siteIsLoaded = false;
 
-            ipcRenderer.send('app-site-switch', {
-                'site': siteName
+            ipcRenderer.send("app-site-switch", {
+                site: siteName
             });
 
-            ipcRenderer.once('app-site-switched', (event, data) => {
+            ipcRenderer.once("app-site-switched", (event, data) => {
                 if (data.status !== false) {
                     this.loadSite(siteName, data);
                     this.siteIsLoaded = true;
-                    this.$bus.$emit('site-loaded', true);
+                    this.$bus.$emit("site-loaded", true);
                 } else {
-                    this.$bus.$emit('message-display', {
-                        message: 'An error occured during loading the selected website. Please check the website files and try again.',
-                        type: 'warning'
+                    this.$bus.$emit("message-display", {
+                        message:
+                            "An error occured during loading the selected website. Please check the website files and try again.",
+                        type: "warning"
                     });
                 }
             });
@@ -98,33 +103,33 @@ export default {
          */
         loadSite: function(siteName, data = false, config = false) {
             // Write a config of the current Site - if necessary
-            if(siteName !== false && config === false) {
-                this.$store.commit('copySiteConfig', siteName);
+            if (siteName !== false && config === false) {
+                this.$store.commit("copySiteConfig", siteName);
             }
 
             // Write a config of the current Site - if necessary
-            if(siteName !== false && config !== false) {
-                this.$store.commit('setSiteConfig', {
+            if (siteName !== false && config !== false) {
+                this.$store.commit("setSiteConfig", {
                     name: siteName,
                     config: config
                 });
             }
 
-            this.$store.commit('switchSite', data);
+            this.$store.commit("switchSite", data);
         },
-        whenSiteLoaded () {
+        whenSiteLoaded() {
             this.currentSite = this.$store.state.currentSite.config.name;
         }
     },
-    beforeDestroy () {
-        this.$bus.$off('add-website-form-displayed');
-        this.$bus.$off('site-loaded', this.whenSiteLoaded);
+    beforeDestroy() {
+        this.$bus.$off("add-website-form-displayed");
+        this.$bus.$off("site-loaded", this.whenSiteLoaded);
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-@import '../scss/variables.scss';
+@import "../scss/variables.scss";
 
 .site {
     padding: 2rem;
@@ -148,7 +153,7 @@ export default {
     }
 
     .content {
-       background: var(--bg-primary);
+        background: var(--bg-primary);
         bottom: 0;
         overflow: scroll;
         padding: 4rem 5rem;
@@ -163,7 +168,7 @@ export default {
     .v-enter-to,
     .v-leave-to {
         opacity: 1;
-        transition: opacity .25s ease-out;
+        transition: opacity 0.25s ease-out;
     }
 
     .v-enter,
@@ -172,17 +177,16 @@ export default {
         position: absolute;
     }
 }
-    
+
 @media (max-height: 900px) {
-    .site .content {          
-           padding: 4rem;
-    }
- }
- 
-@media (max-width: 1400px) {
-    .site .content {          
-           padding: 4rem;
+    .site .content {
+        padding: 4rem;
     }
 }
 
+@media (max-width: 1400px) {
+    .site .content {
+        padding: 4rem;
+    }
+}
 </style>
