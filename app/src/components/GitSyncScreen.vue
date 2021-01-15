@@ -36,7 +36,7 @@ export default {
         ipcRenderer.removeAllListeners("app-license-accepted");
     },
     mounted: async function() {
-        const gitPath = `${this.$store.state.app.config.sitesLocation}`;
+        const gitPath = `${this.$store.state.app.config.sitesLocation}/../`;
         const git = gitP({
             baseDir: gitPath,
             binary: "git",

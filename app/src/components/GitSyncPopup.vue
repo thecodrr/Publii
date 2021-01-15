@@ -145,7 +145,7 @@ export default {
             this.uploadError = false;
             this.noIssues = true;
 
-            const gitPath = `${this.$store.state.app.config.sitesLocation}`;
+            const gitPath = `${this.$store.state.app.config.sitesLocation}/../`;
 
             this.git = gitP({
                 baseDir: gitPath,
@@ -214,7 +214,7 @@ export default {
                 this.syncingProgress = 100;
                 this.progressMessage = "Done.";
                 this.syncInProgress = false;
-                this.syncingProgressColor = "red";
+                this.syncingProgressColor = "green";
             } catch (e) {
                 this.progressMessage = e.message;
                 this.syncingProgressColor = "red";

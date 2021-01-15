@@ -82,11 +82,17 @@
             "app/node_modules/publii-block-editor"
         ],
         "linux": {
-            "icon": "./build/installation/icon.icns",
             "target": [
                 "AppImage"
             ],
-            "category": "Development",
+            "desktop": {
+                "Name": "Publii",
+                "Type": "Application",
+                "Categories": "Utility;Publishing;",
+                "Comment": "Static Site CMS"
+            },
+            "artifactName": "${productName}${arch}${version}.${ext}",
+            "category": "Utility",
             "description": "Static Site CMS",
             "executableName": "Publii"
         },
