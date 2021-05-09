@@ -35,8 +35,15 @@
                         ref="name"
                         id="name"
                         key="name"
+                        :readonly="syncInProgress"
                         :spellcheck="false"
                         v-model="name" />
+                    <small
+                        v-if="syncInProgress"
+                        slot="note"
+                        class="note">
+                        During sync process you cannot change site name.
+                    </small>
                 </field>
 
                 <field
@@ -1395,6 +1402,27 @@
                         </field>
 
                         <field
+                            id="feed-show-only-featured"
+                            label="Show only featured posts">
+                            <label slot="field">
+                                <switcher
+                                    id="feed-show-only-featured"
+                                    v-model="advanced.feed.showOnlyFeatured" />
+                            </label>
+                        </field>
+
+                        <field
+                            v-if="!advanced.feed.showOnlyFeatured"
+                            id="feed-exclude-featured"
+                            label="Exclude featured posts">
+                            <label slot="field">
+                                <switcher
+                                    id="feed-exclude-featured"
+                                    v-model="advanced.feed.excludeFeatured" />
+                            </label>
+                        </field>
+
+                        <field
                             v-if="advanced.feed.enableRss || advanced.feed.enableJson"
                             id="feed-number-of-posts"
                             label="Number of posts in feed">
@@ -1537,6 +1565,53 @@
                             </small>
                         </field>
                     </div>
+
+                    <div slot="tab-10">
+                        <separator
+                            type="medium"
+                            label="WYSIWYG editor" />
+                    
+                        <field
+                            label="Additional valid elements in the WYSIWYG editor">
+                            <text-area
+                                slot="field"
+                                :spellcheck="false"
+                                :rows="8"
+                                v-model="advanced.editors.wysiwygAdditionalValidElements" />
+                            <small
+                                slot="note"
+                                class="note">
+                                If the WYSIWYG editor strips out some tags from your HTML code, here you can add additional allowed elements.<br> For example: <strong>v-select[*],v-dropdown[*]</strong> will allow custom v-select and v-dropdown tags with any attributes.
+                            </small>
+                        </field>
+
+                        <separator
+                            type="medium"
+                            label="Code editor (CodeMirror)" />
+
+                        <field
+                            id="codemirror-indent-size"
+                            label="Indent size (spaces)">
+                            <label slot="field">
+                                <text-input
+                                    id="codemirror-indent-size"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    step="1"
+                                    v-model="advanced.editors.codemirrorTabSize" />
+                            </label>
+                        </field>
+
+                        <field
+                            id="codemirror-auto-indent"
+                            label="Enable auto-indent">
+                            <switcher
+                                slot="field"
+                                id="codemirror-auto-indent"
+                                v-model="advanced.editors.codemirrorAutoIndent" />
+                        </field>
+                    </div>
                 </tabs>
             </fields-group>
 
@@ -1634,7 +1709,8 @@ export default {
                 'GDPR',
                 'Website Speed',
                 'RSS/JSON Feed',
-                'Posts Listing'
+                'Posts Listing',
+                'Editors'
             ];
         },
         seoOptions () {
@@ -1776,6 +1852,9 @@ export default {
             }
 
             return true;
+        },
+        syncInProgress () {
+            return this.$store.state.components.sidebar.syncInProgress;
         }
     },
     beforeMount () {
@@ -1970,6 +2049,22 @@ export default {
                     this.buttonsLocked = false;
                 }
 
+                if(data.message === 'no-keyring') {
+                    if (document.body.getAttribute('data-os') === 'linux') {
+                        this.$bus.$emit('alert-display', {
+                            message: 'Publii cannot save settings as no safe password storage software is installed. Follow the installation instructions for Node Keytar via https://github.com/atom/node-keytar/ and try again. Most likely the libsecret-1-dev and gnome-keyring packages are missing from your system.',
+                            okLabel: 'OK, I understand',
+                        });
+                    } else {
+                        this.$bus.$emit('alert-display', {
+                            message: 'Publii cannot save settings due to a problem with the safe password storage software. Restart the application and try again. If the problem persists, please report it to our team via the community forum.',
+                            okLabel: 'OK, I understand',
+                        });
+                    }
+
+                    this.buttonsLocked = false;
+                }
+
                 ipcRenderer.send('app-site-reload', {
                     siteName: siteName
                 });
@@ -1981,7 +2076,6 @@ export default {
             });
         },
         savedFromPopup (callbackData) {
-            console.log('CD:', callbackData);
             this.saved(callbackData.newSettings, callbackData.siteName, callbackData.showPreview, callbackData.renderingType);
         },
         saved (newSettings, oldName, showPreview = false, renderingType = false) {

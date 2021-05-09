@@ -4,7 +4,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const GoogleCloudStorage = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage');
 const normalizePath = require('normalize-path');
 
 class GoogleCloud {
@@ -32,7 +32,7 @@ class GoogleCloud {
             return;
         }
 
-        let gcs = GoogleCloudStorage({
+        let gcs = new Storage({
             credentials: require(keyFilePath)
         });
 
@@ -119,10 +119,10 @@ class GoogleCloud {
         this.connection.upload(fileToUpload, {
             destination: fileDestination
         }, function(err) {
-            console.log('-> files.publii.json');
+            console.log(`[${ new Date().toUTCString() }] -> files.publii.json`);
 
             if (err) {
-                console.log(err);
+                console.log(`[${ new Date().toUTCString() }] ${err}`);
             }
 
             process.send({
@@ -143,7 +143,7 @@ class GoogleCloud {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         });
     }
@@ -151,8 +151,12 @@ class GoogleCloud {
     uploadFile(input, output) {
         let self = this;
 
-        if(typeof this.prefix === 'string' && this.prefix !== '') {
+        if (typeof this.prefix === 'string' && this.prefix !== '') {
             output = normalizePath(path.join(this.prefix, output));
+        }
+
+        if (output[0] === '/') {
+            output = output.substr(1);
         }
 
         this.connection.upload(input, {
@@ -160,11 +164,8 @@ class GoogleCloud {
             public: true
         }, function(err) {
             if (err) {
-                console.log(err);
-                console.log('- - -ERROR UPLOAD FILE - - -');
-                console.log(output);
-                console.log(err);
-                console.log('- - - - - - - - - - - - - - ');
+                console.log(`[${ new Date().toUTCString() }] ERROR UPLOAD FILE: ${output}`);
+                console.log(`[${ new Date().toUTCString() }] ${err}`);
 
                 setTimeout(() => {
                     if(!self.softUploadErrors[input]) {
@@ -179,7 +180,7 @@ class GoogleCloud {
                         self.hardUploadErrors.push(input);
 
                         self.deployment.currentOperationNumber++;
-                        console.log('UPL HARD ERR ' + input + ' -> ' + output);
+                        console.log(`[${ new Date().toUTCString() }] UPL HARD ERR ${input} -> ${output}`);
                         self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
                         process.send({
@@ -196,7 +197,7 @@ class GoogleCloud {
                 }, 500);
             } else {
                 self.deployment.currentOperationNumber++;
-                console.log('UPL ' + input + ' -> ' + output);
+                console.log(`[${ new Date().toUTCString() }] UPL ${input} -> ${output}`);
                 self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
                 process.send({
@@ -230,14 +231,11 @@ class GoogleCloud {
 
         this.connection.file(input).delete(function (err) {
             self.deployment.currentOperationNumber++;
-            console.log('DEL ' + input);
+            console.log(`[${ new Date().toUTCString() }] DEL ${input}`);
 
             if (err) {
-                console.log(err);
-                console.log('- - -ERROR REMOVE FILE - - -');
-                console.log(input);
-                console.log(err);
-                console.log('- - - - - - - - - - - - - - ');
+                console.log(`[${ new Date().toUTCString() }] ERROR REMOVE FILE: ${input}`);
+                console.log(`[${ new Date().toUTCString() }] ${err}`);
             }
 
             self.deployment.progressOfDeleting += self.deployment.progressPerFile;
@@ -270,7 +268,7 @@ class GoogleCloud {
             return;
         }
 
-        let gcs = GoogleCloudStorage({
+        let gcs = new Storage({
             credentials: require(keyFilePath)
         });
 

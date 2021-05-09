@@ -541,6 +541,26 @@ class Image extends Model {
                                     resolve(destinationPath);
                                 })
                                 .catch(err => reject(err));
+                        } else if (extension.toLowerCase() === ".webp") {
+                            sharp(originalPath)
+                                .resize(finalWidth, finalHeight, {
+                                    withoutEnlargement: true,
+                                    fastShrinkOnLoad: false
+                                })
+                                .webp({
+                                    quality: imagesQuality
+                                })
+                                .toBuffer()
+                                .then(function(outputBuffer) {
+                                    let wstream = fs.createWriteStream(
+                                        destinationPath
+                                    );
+                                    wstream.write(outputBuffer);
+                                    wstream.end();
+
+                                    resolve(destinationPath);
+                                })
+                                .catch(err => reject(err));
                         } else {
                             sharp(originalPath)
                                 .resize(finalWidth, finalHeight, {
@@ -612,6 +632,26 @@ class Image extends Model {
                                         outputBuffer,
                                         destinationPath
                                     );
+                                    resolve(destinationPath);
+                                })
+                                .catch(err => reject(err));
+                        } else if (extension.toLowerCase() === ".webp") {
+                            sharp(originalPath)
+                                .resize(finalWidth, finalHeight, {
+                                    fit: "inside",
+                                    withoutEnlargement: true,
+                                    fastShrinkOnLoad: false
+                                })
+                                .webp({
+                                    quality: imagesQuality
+                                })
+                                .toBuffer()
+                                .then(function(outputBuffer) {
+                                    let wstream = fs.createWriteStream(
+                                        destinationPath
+                                    );
+                                    wstream.write(outputBuffer);
+                                    wstream.end();
                                     resolve(destinationPath);
                                 })
                                 .catch(err => reject(err));
@@ -700,14 +740,27 @@ class Image extends Model {
      * Check if the image has supported image extension
      */
     allowedImageExtension(extension) {
-        const allowedExtensions = [
+        let allowedExtensions = [
             ".jpg",
             ".jpeg",
             ".png",
             ".JPG",
             ".JPEG",
-            ".PNG"
+            ".PNG",
+            ".webp",
+            ".WEBP"
         ];
+
+        if (process.platform === "linux" || this.shouldUseJimp()) {
+            allowedExtensions = [
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".JPG",
+                ".JPEG",
+                ".PNG"
+            ];
+        }
 
         return allowedExtensions.indexOf(extension) > -1;
     }

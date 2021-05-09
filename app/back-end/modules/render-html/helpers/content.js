@@ -175,7 +175,7 @@ class ContentHelper {
         text = text.replace(/\/\/ \]\]\>\<\/script\>/g, '</script>');
         text = text.replace(/\<div class="post__toc"\>[\s\S]*\<\/div\>/gmi, ''); // Remove ToC
         text = text.replace(/<script>[\s\S]*<\/script>/gmi, ''); // Remove scripts
-        text = text.replace(/\r?\n/g, ''); // Remove newline characters
+        text = text.replace(/\r?\n/g, ' '); // Replace newline characters with spaces
         text = text.replace(/<\/p>.*?<p/gi, '</p> <p'); // Replace paragraphs spaces into real space
         text = text.replace(/<br.*?>/gi, ' '); // Replace BR tags with spaces
         text = text.replace(/<publii-non-amp>[\s\S]*?<\/publii-non-amp>/gmi, ''); // Remove conditional content
@@ -373,10 +373,18 @@ class ContentHelper {
      * @private
      */
     static _isImage(url) {
-        if(
+        if (
+            process.platform === 'linux' && 
             url.toLowerCase().indexOf('.jpg') === -1 &&
             url.toLowerCase().indexOf('.jpeg') === -1 &&
             url.toLowerCase().indexOf('.png') === -1
+        ) {
+            return false;
+        } else if (
+            url.toLowerCase().indexOf('.jpg') === -1 &&
+            url.toLowerCase().indexOf('.jpeg') === -1 &&
+            url.toLowerCase().indexOf('.png') === -1 && 
+            url.toLowerCase().indexOf('.webp') === -1
         ) {
             return false;
         }
@@ -408,9 +416,18 @@ class ContentHelper {
             ContentHelper.getContentImageSrcset(url, themeConfig) !== false &&
             ContentHelper._imageIsLocal(url, domain) &&
             !(
-                url.toLowerCase().indexOf('.jpg') === -1 &&
-                url.toLowerCase().indexOf('.jpeg') === -1 &&
-                url.toLowerCase().indexOf('.png') === -1
+                (
+                    process.platform !== 'linux' &&
+                    url.toLowerCase().indexOf('.jpg') === -1 &&
+                    url.toLowerCase().indexOf('.jpeg') === -1 &&
+                    url.toLowerCase().indexOf('.png') === -1 && 
+                    url.toLowerCase().indexOf('.webp') === -1
+                ) || (
+                    process.platform === 'linux' &&
+                    url.toLowerCase().indexOf('.jpg') === -1 &&
+                    url.toLowerCase().indexOf('.jpeg') === -1 &&
+                    url.toLowerCase().indexOf('.png') === -1
+                )
             ) &&
             url.toLowerCase().indexOf('/gallery/') === -1
         ) {

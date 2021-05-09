@@ -38,9 +38,9 @@
 
             <div 
                 v-if="deploymentMethodSelected === ''"
-                class="server-settings-intro">   
+                class="server-settings-grid">   
                 
-                 <div @click="deploymentMethodSelected = 'ftp'" title="FTP">
+                 <div @click="deploymentMethodSelected = 'ftp'" title="FTP" class="server-settings-grid-item">
                    <icon
                       customWidth="69"
                       customHeight="42"                   
@@ -48,7 +48,7 @@
                       iconset="svg-map-server"/>
                 </div>
 
-                <div @click="deploymentMethodSelected = 'sftp'" title="SFTP">
+                <div @click="deploymentMethodSelected = 'sftp'" title="SFTP" class="server-settings-grid-item">
                    <icon
                       customWidth="69"
                       customHeight="42"                   
@@ -56,15 +56,15 @@
                       iconset="svg-map-server"/>
                 </div>               
 
-                <div @click="deploymentMethodSelected = 's3'" title="AWS S3">
+                <div @click="deploymentMethodSelected = 's3'" title="S3 compatible storage" class="server-settings-grid-item">
                    <icon
                       customWidth="48"
                       customHeight="48"                    
-                      name="aws" 
+                      name="s3storage" 
                       iconset="svg-map-server"/>
                 </div>
                 
-                <div @click="deploymentMethodSelected = 'github-pages'" title="Github Pages">
+                <div @click="deploymentMethodSelected = 'github-pages'" title="Github Pages" class="server-settings-grid-item">
                     <icon
                       customWidth="129"
                       customHeight="42"                     
@@ -72,7 +72,7 @@
                       iconset="svg-map-server"/>
                 </div>
 
-                <div @click="deploymentMethodSelected = 'gitlab-pages'" title="Gitlab Pages">
+                <div @click="deploymentMethodSelected = 'gitlab-pages'" title="Gitlab Pages" class="server-settings-grid-item">
                     <icon
                       customWidth="113"
                       customHeight="40"                     
@@ -80,7 +80,7 @@
                       iconset="svg-map-server"/>
                 </div>
                 
-                <div @click="deploymentMethodSelected = 'netlify'" title="Netlify">
+                <div @click="deploymentMethodSelected = 'netlify'" title="Netlify" class="server-settings-grid-item">
                    <icon
                       customWidth="102"
                       customHeight="48"                     
@@ -88,7 +88,7 @@
                       iconset="svg-map-server"/>
                 </div>
 
-                <div @click="deploymentMethodSelected = 'google-cloud'" title="Google Cloud">
+                <div @click="deploymentMethodSelected = 'google-cloud'" title="Google Cloud" class="server-settings-grid-item">
                     <icon
                       customWidth="167"
                       customHeight="40"                     
@@ -96,13 +96,23 @@
                       iconset="svg-map-server"/>
                 </div>
                 
-                <div @click="deploymentMethodSelected = 'manual'" title="Manual deployment">
+                <div @click="deploymentMethodSelected = 'manual'" title="Manual deployment" class="server-settings-grid-item">
                    <icon
                       customWidth="50"
                       customHeight="50"                   
                       name="zip" 
                       iconset="svg-map-server"/>
                 </div>
+           
+                <a href="https://getpublii.com/docs/deployment/" target="_blank" rel="noopener noreferrer" class="server-settings-grid-item deployment-others">
+                    <icon
+                        customWidth="29"
+                        customHeight="29"                   
+                        name="deployment-others" 
+                        iconset="svg-map-server"/>
+                        <h3>More...</h3>
+                </a>
+            
             </div>
 
             <fields-group v-if="deploymentMethodSelected !== ''">
@@ -487,7 +497,7 @@
                     <small
                         slot="note"
                         class="note">
-                        Examples: <strong>gh-pages</strong>, <strong>docs</strong> or <strong>master</strong>
+                        Examples: <strong>gh-pages</strong>, <strong>docs</strong> or <strong>main</strong>
                     </small>
                 </field>
 
@@ -583,6 +593,11 @@
                         class="note">
                         The repository field cannot be empty
                     </small>
+                    <small
+                        slot="note"
+                        class="note">
+                        This field is case-sensitive
+                    </small>
                 </field>
 
                 <field
@@ -606,7 +621,7 @@
                     <small
                         slot="note"
                         class="note">
-                        Examples: <strong>docs</strong> or <strong>master</strong>
+                        Examples: <strong>docs</strong>, <strong>main</strong> or <strong>master</strong>
                     </small>
                 </field>
 
@@ -674,6 +689,46 @@
 
                 <field
                     v-if="deploymentMethodSelected === 's3'"
+                    id="s3-provider"	
+                    label=" ">	
+                    <switcher	
+                        slot="field"	
+                        id="s3-provider"
+                        key="s3-provider"
+                        v-model="deploymentSettings.s3.customProvider"	
+                        @click.native="toggleS3Provider" />	
+                    <template slot="second-label">	
+                        Use a custom S3 provider
+                    </template>	
+                    <small	
+                        class="note"	
+                        slot="note">	
+                        Note: AWS is the default S3 provider. While using an alternative provider, you need to fill the "S3 provider endpoint" field.	
+                    </small>	
+                </field>
+
+                <field
+                    v-if="deploymentMethodSelected === 's3' && deploymentSettings.s3.customProvider"
+                    id="s3-endpoint"
+                    label="S3 Provider endpoint">
+                    <text-input
+                        slot="field"
+                        id="s3-endpoint"
+                        key="s3-endpoint"
+                        :spellcheck="false"
+                        :class="{ 'is-invalid': errors.indexOf('s3-endpoint') > -1 }"
+                        @keyup.native="cleanError('s3-endpoint')"
+                        v-model="deploymentSettings.s3.endpoint" />
+                    <small
+                        slot="note"
+                        v-if="errors.indexOf('s3-endpoint') > -1"
+                        class="note">
+                        The custom endpoint cannot be empty when "Use a custom S3 provider" is set to true
+                    </small>
+                </field>
+
+                <field
+                    v-if="deploymentMethodSelected === 's3'"
                     id="s3-id"
                     label="Access ID">
                     <text-input
@@ -735,7 +790,7 @@
                 </field>
 
                 <field
-                    v-if="deploymentMethodSelected === 's3'"
+                    v-if="deploymentMethodSelected === 's3' && !deploymentSettings.s3.customProvider"
                     id="s3-region"
                     label="Region">
                     <dropdown
@@ -937,7 +992,7 @@ export default {
                 'github-pages': 'Github Pages',
                 'gitlab-pages': 'GitLab Pages',
                 'netlify': 'Netlify',
-                's3': 'Amazon S3',
+                's3': 'S3 compatible storage',
                 'google-cloud': 'Google Cloud',
                 'ftp': 'FTP',
                 'sftp': 'SFTP (with password)',
@@ -1107,6 +1162,20 @@ export default {
                         type: 'success',
                         lifeTime: 3
                     });
+                }
+
+                if(data.message === 'no-keyring') {
+                    if (document.body.getAttribute('data-os') === 'linux') {
+                        this.$bus.$emit('alert-display', {
+                            message: 'Publii cannot save settings as no safe password storage software is installed. Follow the installation instructions for Node Keytar via https://github.com/atom/node-keytar/ and try again. Most likely the libsecret-1-dev and gnome-keyring packages are missing from your system.',
+                            okLabel: 'OK, I understand',
+                        });
+                    } else {
+                        this.$bus.$emit('alert-display', {
+                            message: 'Publii cannot save settings due to a problem with the safe password storage software. Restart the application and try again. If the problem persists, please report it to our team via the community forum.',
+                            okLabel: 'OK, I understand',
+                        });
+                    }
                 }
             });
         },
@@ -1283,6 +1352,11 @@ export default {
         },
         validateS3 () {
             let fields = ['s3_id', 's3_key', 's3_bucket', 's3_region'];
+
+            if (this.deploymentSettings.s3.customProvider) {
+                fields = ['s3_endpoint', 's3_id', 's3_key', 's3_bucket'];
+            }
+            
             return this.validateFields(fields);
         },
         validateGithubPages () {
@@ -1337,7 +1411,7 @@ export default {
                 case 'github-pages': return 'Github Pages';
                 case 'gitlab-pages': return 'GitLab Pages';
                 case 'netlify': return 'Netlify';
-                case 's3': return 'Amazon S3';
+                case 's3': return 'S3 compatible storage';
                 case 'google-cloud': return 'Google Cloud';
                 case 'ftp': return 'FTP';
                 case 'sftp':
@@ -1376,28 +1450,34 @@ export default {
             return deploymentSettings;
         },
         setHiddenPasswords (deploymentSettings) {
-            deploymentSettings.password = 'publii ' + this.$store.state.currentSite.config.name;
+            let passwordKey = this.$store.state.currentSite.config.name;
+            
+            if (this.$store.state.currentSite.config.uuid) {
+                passwordKey = this.$store.state.currentSite.config.uuid;
+            }
+
+            deploymentSettings.password = 'publii ' + passwordKey;
 
             if (deploymentSettings.passphrase) {
-                deploymentSettings.passphrase = 'publii-passphrase ' + this.$store.state.currentSite.config.name;
+                deploymentSettings.passphrase = 'publii-passphrase ' + passwordKey;
             }
 
             if (deploymentSettings.s3) {
-                deploymentSettings.s3.id = 'publii-s3-id ' + this.$store.state.currentSite.config.name;
-                deploymentSettings.s3.key = 'publii-s3-key ' + this.$store.state.currentSite.config.name;
+                deploymentSettings.s3.id = 'publii-s3-id ' + passwordKey;
+                deploymentSettings.s3.key = 'publii-s3-key ' + passwordKey;
             }
 
             if (deploymentSettings.netlify) {
-                deploymentSettings.netlify.id = 'publii-netlify-id ' + this.$store.state.currentSite.config.name;
-                deploymentSettings.netlify.token = 'publii-netlify-token ' + this.$store.state.currentSite.config.name;
+                deploymentSettings.netlify.id = 'publii-netlify-id ' + passwordKey;
+                deploymentSettings.netlify.token = 'publii-netlify-token ' + passwordKey;
             }
 
             if (deploymentSettings.github) {
-                deploymentSettings.github.token = 'publii-gh-token ' + this.$store.state.currentSite.config.name;
+                deploymentSettings.github.token = 'publii-gh-token ' + passwordKey;
             }
 
             if (deploymentSettings.gitlab) {
-                deploymentSettings.gitlab.token = 'publii-gl-token ' + this.$store.state.currentSite.config.name;
+                deploymentSettings.gitlab.token = 'publii-gl-token ' + passwordKey;
             }
 
             return deploymentSettings;
@@ -1407,6 +1487,13 @@ export default {
                 this.deploymentMethodSelected = 'ftp';
             } else {
                 this.deploymentMethodSelected = 'ftp+tls';
+            }
+        },
+        toggleS3Provider () {
+            if (this.deploymentSettings.s3.customProvider) {
+                this.deploymentSettings.s3.provider = 'custom';
+            } else {
+                this.deploymentSettings.s3.provider = 'aws';
             }
         }
     }
@@ -1436,16 +1523,17 @@ export default {
         color: var(--warning);
     }
     
-    &-intro {       
+    &-grid {       
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         grid-gap: 2rem;       
         
-        & > div {
+        &-item {
             align-items: center;
             background: var(--gray-1);
             border: 1px solid transparent;
             border-radius: 3px;
+            color:  var(--gray-5);
             display: flex;
             justify-content: center;
             min-height: calc(8rem + 8vh);
@@ -1455,6 +1543,7 @@ export default {
                 background: var(--bg-primary);
                 border-color: var(--primary-color);
                 box-shadow: 0 0 26px rgba(black, .07);
+                color: var(--primary-color);
                 cursor: pointer;
                 
                 & > svg {
@@ -1465,6 +1554,14 @@ export default {
             & > svg {
                 fill: var(--gray-5);
                 transition: inherit;
+            }
+
+            &.deployment-others {
+                h3 {
+                    font-size: 1.9rem;
+                    font-weight: var(--font-weight-semibold);
+                    margin-left: 1rem;
+                }
             }
         }
     }

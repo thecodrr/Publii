@@ -1,6 +1,6 @@
 {
     "name": "Simple",
-    "version": "2.3.0.0",
+    "version": "2.3.1.0",
     "author": "TidyCustoms <https://tidycustoms.net/>",
     "menus": {
         "mainMenu": "Main menu"
@@ -65,7 +65,7 @@
     "customConfig": [
         {
             "name": "pageMargin",
-            "label": "Page width",
+            "label": "Page margin",
             "group": "Layout",
             "value": "6vw",
             "type": "text"

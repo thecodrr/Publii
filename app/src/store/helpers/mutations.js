@@ -258,6 +258,9 @@ export default {
     setSidebarStatus (state, newStatus) {
         state.components.sidebar.status = newStatus;
     },
+    setSyncStatus (state, newStatus) {
+        state.components.sidebar.syncInProgress = newStatus;
+    },
     setMenuPosition (state, newPositionData) {
         state.currentSite.menuStructure[newPositionData.index].position = newPositionData.position;
     },
@@ -296,6 +299,24 @@ export default {
         state.currentSite.menuStructure = state.currentSite.menuStructure.map((menu, index) => {
             if (index === data.menuID) {
                 menu.items = menu.items.map(item => editMenuItemByID(item, data.menuItem));
+            }
+
+            return menu;
+        });
+    },
+    showMenuItem (state, data) {
+        state.currentSite.menuStructure = state.currentSite.menuStructure.map((menu, index) => {
+            if (index === data.menuID) {
+                menu.items = menu.items.map(item => showMenuItemByID(item, data.itemID));
+            }
+
+            return menu;
+        });
+    },
+    hideMenuItem (state, data) {
+        state.currentSite.menuStructure = state.currentSite.menuStructure.map((menu, index) => {
+            if (index === data.menuID) {
+                menu.items = menu.items.map(item => hideMenuItemByID(item, data.itemID));
             }
 
             return menu;
@@ -344,7 +365,7 @@ export default {
     }
 };
 
-function findMenuItemByID(items, menuItemID) {
+function findMenuItemByID (items, menuItemID) {
     if (items) {
         for (var i = 0; i < items.length; i++) {
             if (items[i].id == menuItemID) {
@@ -360,7 +381,7 @@ function findMenuItemByID(items, menuItemID) {
     }
 }
 
-function insertSubmenuItem(menuItems, menuItem, parentItemID) {
+function insertSubmenuItem (menuItems, menuItem, parentItemID) {
     return menuItems.map(item => {
         if(item.id === parentItemID) {
             item.items.push(menuItem);
@@ -375,10 +396,10 @@ function insertSubmenuItem(menuItems, menuItem, parentItemID) {
     });
 }
 
-function editMenuItemByID(item, editedMenuItem) {
+function editMenuItemByID (item, editedMenuItem) {
     item.items = item.items.map(item => editMenuItemByID(item, editedMenuItem));
 
-    if(item.id === editedMenuItem.id) {
+    if (item.id === editedMenuItem.id) {
         item.label = editedMenuItem.label;
         item.title = editedMenuItem.title;
         item.type = editedMenuItem.type;
@@ -386,13 +407,13 @@ function editMenuItemByID(item, editedMenuItem) {
         item.target = editedMenuItem.target;
         item.rel = editedMenuItem.rel;
         item.cssClass = editedMenuItem.cssClass;
+        item.isHidden = editedMenuItem.isHidden || false;
     }
 
     return item;
 }
 
-
-function deleteMenuItemByID(item, id) {
+function deleteMenuItemByID (item, id) {
     if(item.id === id) {
         return false;
     }
@@ -400,4 +421,24 @@ function deleteMenuItemByID(item, id) {
     item.items = item.items.filter(item => deleteMenuItemByID(item, id));
 
     return item.id !== id;
+}
+
+function hideMenuItemByID (item, itemID) {
+    item.items = item.items.map(subitem => hideMenuItemByID(subitem, itemID));
+
+    if (item.id === itemID) {
+        item.isHidden = true;
+    }
+
+    return item;
+}
+
+function showMenuItemByID (item, itemID) {
+    item.items = item.items.map(subitem => showMenuItemByID(subitem, itemID));
+
+    if (item.id === itemID) {
+        item.isHidden = false;
+    }
+
+    return item;
 }

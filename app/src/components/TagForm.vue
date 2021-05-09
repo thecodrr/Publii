@@ -189,6 +189,28 @@
                                 :spellcheck="$store.state.currentSite.config.spellchecking"
                                 :preferredCount="160"></text-area>
                         </label>
+
+                        <label>
+                            Meta robots index:
+                            <dropdown
+                                v-if="!tagData.additionalData.canonicalUrl"
+                                id="tag-meta-robots"
+                                v-model="tagData.additionalData.metaRobots"
+                                :items="metaRobotsOptions">
+                            </dropdown>
+                            <div v-else>
+                                <small>If canonical URL is set, the meta robots tag is ignored.</small>
+                            </div>
+                        </label>
+
+                        <label>
+                            Canonical URL:
+                            <input
+                                type="text"
+                                v-model="tagData.additionalData.canonicalUrl"
+                                spellcheck="false"
+                                placeholder="Leave blank to use a default tag page URL" />
+                        </label>
                     </div>
                 </div>
             </div>
@@ -299,6 +321,8 @@ export default {
                     isHidden: false,
                     metaTitle: '',
                     metaDescription: '',
+                    metaRobots: '',
+                    canonicalUrl: '',
                     template: ''
                 }
             }
@@ -335,10 +359,19 @@ export default {
         },
         currentThemeHasTagTemplates: function() {
             return Object.keys(this.tagTemplates).length > 1;
+        },
+        metaRobotsOptions () {
+            return {
+                '': 'Use site global settings',
+                'index, follow': 'index, follow',
+                'index, nofollow': 'index, nofollow',
+                'noindex, follow': 'noindex, follow',
+                'noindex, nofollow': 'noindex, nofollow'
+            };
         }
     },
     mounted () {
-        this.$bus.$on('show-tag-item-editor', params => {
+        this.$bus.$on('show-tag-item-editor', (params, openedItem = false) => {
             try {
                 if (typeof params.additionalData === 'string' && params.additionalData) {
                     params.additionalData = JSON.parse(params.additionalData);
@@ -350,6 +383,7 @@ export default {
                 params.additionalData = {};
             }
 
+            this.openedItem = 'basic';
             this.errors = [];
             this.tagData.id = params.id || 0;
             this.tagData.name = params.name || '';
@@ -363,6 +397,8 @@ export default {
             this.tagData.additionalData.isHidden = params.additionalData.isHidden || false;
             this.tagData.additionalData.metaTitle = params.additionalData.metaTitle || '';
             this.tagData.additionalData.metaDescription = params.additionalData.metaDescription || '';
+            this.tagData.additionalData.metaRobots = params.additionalData.metaRobots || '';
+            this.tagData.additionalData.canonicalUrl = params.additionalData.canonicalUrl || '';
             this.tagData.additionalData.template = params.additionalData.template || '';
             this.currentTagIsHidden = !!this.tagData.additionalData.isHidden;
 
@@ -426,8 +462,11 @@ export default {
                 if (data.status !== false) {
                     if(this.tagData.id === 0) {
                         let newlyAddedTag = JSON.parse(JSON.stringify(data.tags.filter(tag => tag.id === data.tagID)[0]));
-                        this.$bus.$emit('show-tag-item-editor', newlyAddedTag);
                         this.showMessage(data.message);
+
+                        Vue.nextTick(() => {
+                            this.$bus.$emit('show-tag-item-editor', newlyAddedTag, this.openedItem);    
+                        });
                     } else {
                         if (!showPreview) {
                             this.close();

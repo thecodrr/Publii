@@ -21,6 +21,8 @@ class S3 {
 
     async initConnection() {
         let self = this;
+        let s3Provider = this.deployment.siteConfig.deployment.s3.provider;    
+        let s3Endpoint = this.deployment.siteConfig.deployment.s3.endpoint;
         let s3Id = this.deployment.siteConfig.deployment.s3.id;
         let s3Key = this.deployment.siteConfig.deployment.s3.key;
         let region = this.deployment.siteConfig.deployment.s3.region;
@@ -41,13 +43,27 @@ class S3 {
             s3Key = await passwordSafeStorage.getPassword('publii-s3-key', account);
         }
 
-        this.connection = new AWS.S3({
-            accessKeyId: s3Id,
-            secretAccessKey: s3Key,
-            region: region,
-            sslEnabled: true,
-            signatureVersion: 'v4'
-        });
+        let connectionParams
+        
+        if (s3Provider === 'aws') {
+            connectionParams = {            
+                accessKeyId: s3Id,
+                secretAccessKey: s3Key,
+                region: region,
+                sslEnabled: true,
+                signatureVersion: 'v4'
+            }
+        } else {
+            connectionParams = {
+                endpoint: s3Endpoint,                
+                accessKeyId: s3Id,
+                secretAccessKey: s3Key,
+                sslEnabled: true,
+                signatureVersion: 'v4'
+            }
+        }
+
+        this.connection = new AWS.S3(connectionParams);
 
         process.send({
             type: 'web-contents',
@@ -106,7 +122,7 @@ class S3 {
                 });
 
                 setTimeout(function () {
-                    process.exit();
+                    process.kill(process.pid, 'SIGTERM');
                 }, 1000);
             }
         }, 20000);
@@ -126,7 +142,7 @@ class S3 {
         };
 
         this.connection.getObject(params, function(err, data) {
-            console.log('<- files.publii.json');
+            console.log(`[${ new Date().toUTCString() }] <- files.publii.json`);
 
             if (err && err.code !== 'NoSuchKey') {
                 self.onError(err);
@@ -185,7 +201,7 @@ class S3 {
             };
 
             this.connection.putObject(params, function(err) {
-                console.log('-> files.publii.json');
+                console.log(`[${ new Date().toUTCString() }] -> files.publii.json`);
 
                 if (err) {
                     self.onError(err, true);
@@ -210,7 +226,7 @@ class S3 {
                 });
 
                 setTimeout(function () {
-                    process.exit();
+                    process.kill(process.pid, 'SIGTERM');
                 }, 1000);
             });
         });
@@ -287,7 +303,7 @@ class S3 {
                             self.hardUploadErrors.push(input);
 
                             self.deployment.currentOperationNumber++;
-                            console.log('UPL HARD ERR ' + input + ' -> ' + fileName);
+                            console.log(`[${ new Date().toUTCString() }] UPL HARD ERR ${input} -> ${fileName}`);
                             self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
                             process.send({
@@ -304,7 +320,7 @@ class S3 {
                     }, 500);
                 } else {
                     self.deployment.currentOperationNumber++;
-                    console.log('UPL ' + input + ' -> ' + fileName);
+                    console.log(`[${ new Date().toUTCString() }] UPL ${input} -> ${fileName}`);
                     self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
                     process.send({
@@ -359,7 +375,7 @@ class S3 {
             params,
             function (err) {
                 self.deployment.currentOperationNumber++;
-                console.log('DEL ' + input);
+                console.log(`[${ new Date().toUTCString() }] DEL ${input}`);
 
                 if (err) {
                     self.onError(err, true);
@@ -382,9 +398,7 @@ class S3 {
     }
 
     onError(err, silentMode = false) {
-        console.log('- - -  S3 ERROR - - -');
-        console.log(err.message);
-        console.log('- - - - - - - - - - -');
+        console.log(`[${ new Date().toUTCString() }] S3 ERROR: ${err.message}`);
 
         if(this.waitForTimeout && !silentMode) {
             this.waitForTimeout = false;
@@ -395,7 +409,7 @@ class S3 {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         }
     }
@@ -409,6 +423,8 @@ class S3 {
     }
 
     async testConnection(app, deploymentConfig, siteName, uuid) {
+        let s3Provider = deploymentConfig.s3.provider;     
+        let s3Endpoint = deploymentConfig.s3.endpoint;
         let s3Id = deploymentConfig.s3.id;
         let s3Key = deploymentConfig.s3.key;
         let bucket = deploymentConfig.s3.bucket;
@@ -421,21 +437,35 @@ class S3 {
             account = uuid;
         }
 
-        if(s3Id === 'publii-s3-id ' + account) {
+        if (s3Id === 'publii-s3-id ' + account) {
             s3Id = await passwordSafeStorage.getPassword('publii-s3-id', account);
         }
 
-        if(s3Key === 'publii-s3-key ' + account) {
+        if (s3Key === 'publii-s3-key ' + account) {
             s3Key = await passwordSafeStorage.getPassword('publii-s3-key', account);
         }
 
-        let connection = new AWS.S3({
-            accessKeyId: s3Id,
-            secretAccessKey: s3Key,
-            region: region,
-            sslEnabled: true,
-            signatureVersion: 'v4'
-        });
+        let connectionParams;
+        
+        if (s3Provider === 'aws') {
+            connectionParams = {            
+                accessKeyId: s3Id,
+                secretAccessKey: s3Key,
+                region: region,
+                sslEnabled: true,
+                signatureVersion: 'v4'
+            }
+        } else {
+            connectionParams = {
+                endpoint: s3Endpoint,                
+                accessKeyId: s3Id,
+                secretAccessKey: s3Key,
+                sslEnabled: true,
+                signatureVersion: 'v4'
+            }
+        }
+
+        let connection = new AWS.S3(connectionParams);
 
         let testParams = {
             Bucket: bucket,

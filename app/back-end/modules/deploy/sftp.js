@@ -89,7 +89,7 @@ class SFTP {
 
             this.downloadFilesList();
         }).catch(err => {
-            console.log('ERR (1): ' + err);
+            console.log(`[${ new Date().toUTCString() }] ERR (1): ${err}`);
             this.connection.end();
 
             process.send({
@@ -98,7 +98,7 @@ class SFTP {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         });
 
@@ -112,7 +112,7 @@ class SFTP {
                 });
 
                 setTimeout(function () {
-                    process.exit();
+                    process.kill(process.pid, 'SIGTERM');
                 }, 1000);
             }
         }, 20000);
@@ -122,7 +122,7 @@ class SFTP {
         this.connection.get(
             normalizePath(path.join(this.deployment.outputDir, 'files.publii.json'))
         ).then((stream) => {
-            console.log('<- files.publii.json');
+            console.log(`[${ new Date().toUTCString() }] <- files.publii.json`);
 
             process.send({
                 type: 'web-contents',
@@ -142,12 +142,12 @@ class SFTP {
                 this.deployment.compareFilesList(false);
             }
         }).catch(err => {
-            console.log('ERR (2): ' + err + ' (' + err.stack + ')' + ' [<- files.publii.json]');
+            console.log(`[${ new Date().toUTCString() }] ERR (2): ${err} (${err.stack}) [<- files.publii.json]`);
             
             try {
                 this.deployment.compareFilesList(false);
             } catch (err) {
-                console.log('ERR (3): ' + err + ' (' + err.stack + ')' + ' [<- files.publii.json]');
+                console.log(`[${ new Date().toUTCString() }] ERR (3): ${err} (${err.stack}) [<- files.publii.json]`);
             }
         });
     }
@@ -168,7 +168,7 @@ class SFTP {
             normalizePath(path.join(self.deployment.inputDir, 'files.publii.json')),
             normalizePath(path.join(self.deployment.outputDir, 'files.publii.json'))
         ).then(function(result) {
-            console.log('-> files.publii.json');
+            console.log(`[${ new Date().toUTCString() }] -> files.publii.json`);
             self.connection.end();
 
             process.send({
@@ -189,14 +189,14 @@ class SFTP {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         }).catch(err => {
             this.connection.end();
-            console.log(err);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         });
     }
@@ -206,7 +206,7 @@ class SFTP {
 
         this.connection.put(input, output).then(function (result) {
             self.deployment.currentOperationNumber++;
-            console.log('UPL ' + input + ' -> ' + output);
+            console.log(`[${ new Date().toUTCString() }] UPL ${input} -> ${output}`);
             self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
             process.send({
@@ -220,10 +220,8 @@ class SFTP {
 
             self.deployment.uploadFile();
         }).catch(err => {
-            console.log('- - -ERROR UPLOAD FILE - - -');
-            console.log(normalizePath(path.join(self.outputDir, input)));
-            console.log(err);
-            console.log('- - - - - - - - - - - - - - ');
+            console.log(`[${ new Date().toUTCString() }] ERROR UPLOAD FILE: ${normalizePath(path.join(self.outputDir, input))}`);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
             self.deployment.uploadFile();
         });
     }
@@ -233,7 +231,7 @@ class SFTP {
 
         this.connection.mkdir(output, true).then(function (result) {
             self.deployment.currentOperationNumber++;
-            console.log('UPL ' + input + ' -> ' + output);
+            console.log(`[${ new Date().toUTCString() }] UPL ${input} -> ${output}`);
             self.deployment.progressOfUploading += self.deployment.progressPerFile;
 
             process.send({
@@ -247,10 +245,20 @@ class SFTP {
 
             self.deployment.uploadFile();
         }).catch(err => {
-            console.log('- - -ERROR UPLOAD DIR - - -');
-            console.log(output);
-            console.log(err);
-            console.log('- - - - - - - - - - - - - - ');
+            self.deployment.currentOperationNumber++;
+            console.log(`[${ new Date().toUTCString() }] ERROR UPLOAD DIR: ${output}`);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
+
+            self.deployment.progressOfUploading += self.deployment.progressPerFile;
+            process.send({
+                type: 'web-contents',
+                message: 'app-uploading-progress',
+                value: {
+                    progress: 8 + Math.floor(self.deployment.progressOfUploading),
+                    operations: [self.deployment.currentOperationNumber, self.deployment.operationsCounter]
+                }
+            });
+
             self.deployment.uploadFile();
         });
     }
@@ -260,7 +268,7 @@ class SFTP {
 
         this.connection.delete(input).then(function (result) {
             self.deployment.currentOperationNumber++;
-            console.log('DEL ' + input);
+            console.log(`[${ new Date().toUTCString() }] DEL ${input}`);
             self.deployment.progressOfDeleting += self.deployment.progressPerFile;
 
             process.send({
@@ -274,10 +282,8 @@ class SFTP {
 
             self.deployment.removeFile();
         }).catch(err => {
-            console.log('- - -ERROR REMOVE FILE - - -');
-            console.log(input);
-            console.log(err);
-            console.log('- - - - - - - - - - - - - - ');
+            console.log(`[${ new Date().toUTCString() }] ERROR REMOVE FILE: ${input}`);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
             self.deployment.removeFile();
         });
     }
@@ -287,7 +293,7 @@ class SFTP {
 
         this.connection.rmdir(input, true).then(function (result) {
             self.deployment.currentOperationNumber++;
-            console.log('DEL ' + input);
+            console.log(`[${ new Date().toUTCString() }] DEL ${input}`);
             self.deployment.progressOfDeleting += self.deployment.progressPerFile;
 
             process.send({
@@ -301,10 +307,8 @@ class SFTP {
 
             self.deployment.removeFile();
         }).catch(err => {
-            console.log('- - -ERROR REMOVE DIR - - -');
-            console.log(input);
-            console.log(err);
-            console.log('- - - - - - - - - - - - - - ');
+            console.log(`[${ new Date().toUTCString() }] ERROR REMOVE DIR ${input}`);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
             self.deployment.removeFile();
         });
     }
@@ -389,7 +393,7 @@ class SFTP {
             waitForTimeout = false;
             app.mainWindow.webContents.send('app-deploy-test-success');
         }).catch(err => {
-            console.log(err);
+            console.log(`[${ new Date().toUTCString() }] ${err}`);
 
             if(waitForTimeout) {
                 waitForTimeout = false;

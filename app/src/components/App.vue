@@ -12,7 +12,14 @@
             "
         />
         <topbar v-if="!splashScreenDisplayed && !postEditorDisplayed" />
-        <section>
+        <section
+            :class="
+                $route.path
+                    .replace(/^\//im, '')
+                    .replace(/\/$/im, '')
+                    .replace(/\//gim, '-')
+            "
+        >
             <router-view />
         </section>
 
@@ -132,6 +139,10 @@ export default {
                     : process.platform === "linux"
                     ? "linux"
                     : "win"
+            );
+            document.documentElement.setAttribute(
+                "data-is-osx-11-or-higher",
+                mainProcess.isOSX11orHigher()
             );
             document.body.setAttribute("data-env", process.env.NODE_ENV);
         },
@@ -314,7 +325,7 @@ export default {
         font-size: 1.6rem;
         left: 0;
         position: absolute;
-        top: 2.2rem;
+        top: var(--topbar-height);
         width: 35rem;
         z-index: 1;
     }
@@ -322,11 +333,16 @@ export default {
 
 #app {
     & > .topbar + section {
-        height: calc(100vh - 2.2rem);
-        overflow: auto;
-        position: absolute;
-        top: 2.2rem;
+        height: calc(100vh - var(--topbar-height));
+        margin-top: var(--topbar-height);
         width: 100%;
+
+        & > * {
+            height: calc(100vh - var(--topbar-height));
+            overflow: auto;
+            position: absolute;
+            width: 100%;
+        }
     }
 
     a {
@@ -334,6 +350,10 @@ export default {
         -webkit-user-drag: none;
         -webkit-app-region: no-drag;
     }
+}
+
+#app > .app-settings ~ .overlay.is-minimized {
+    display: none;
 }
 
 body[data-os="win"] {
@@ -349,7 +369,12 @@ body[data-os="linux"] {
     #app {
         & > .topbar + section {
             height: 100vh;
+            margin-top: 0;
             top: 0;
+
+            & > * {
+                height: 100vh;
+            }
         }
     }
 

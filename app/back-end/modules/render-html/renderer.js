@@ -35,6 +35,7 @@ const ContentHelper = require("./helpers/content");
 
 // Default config
 const defaultAstCurrentSiteConfig = require("./../../../config/AST.currentSite.config");
+const { advanced } = require("./../../../config/AST.currentSite.config");
 
 /*
  * Class used to generate HTML output
@@ -287,10 +288,14 @@ class Renderer {
         this.sendProgress(80, "Copying files");
         await this.copyFiles();
 
-        if (!this.siteConfig.deployment.relativeUrls) {
+        if (
+            !this.siteConfig.deployment.relativeUrls &&
+            !this.siteConfig.advanced.noIndexThisPage
+        ) {
             await this.generateSitemap();
         }
 
+        this.createRobotsTxt();
         this.sendProgress(90, "Finishing the render process");
     }
 
@@ -2330,7 +2335,7 @@ class Renderer {
                 let visualParams = JSON.parse(
                     JSON.stringify(this.themeConfig.customConfig)
                 );
-                return generateOverride(visualParams) + styleCSS;
+                return generateOverride(visualParams);
             } catch (e) {
                 this.errorLog.push({
                     message:
@@ -2561,6 +2566,7 @@ class Renderer {
             this.outputDir,
             postIDs
         );
+        await FilesHelper.removeEmptyDirectories(this.outputDir);
         console.timeEnd("FILES");
     }
 
@@ -2693,20 +2699,57 @@ class Renderer {
     }
 
     /**
+     * Create robots.txt file if it is not created by user
+     */
+    createRobotsTxt() {
+        let robotsTxtPath = path.join(this.outputDir, "robots.txt");
+
+        // Check if robots.txt exists - if yes, do nothing
+        if (UtilsHelper.fileExists(robotsTxtPath)) {
+            return;
+        }
+
+        // Create robots.txt
+        let robotsTxtContent = "";
+
+        if (
+            this.siteConfig.advanced &&
+            this.siteConfig.advanced.noIndexThisPage
+        ) {
+            robotsTxtContent = `User-agent: *\nDisallow: /`;
+        } else {
+            robotsTxtContent = `User-agent: *\nDisallow:`;
+
+            if (
+                this.siteConfig.advanced.sitemapEnabled &&
+                !this.siteConfig.deployment.relativeUrls
+            ) {
+                robotsTxtContent += `\nSitemap: ${this.siteConfig.originalDomain}/sitemap.xml`;
+            }
+        }
+
+        fs.writeFileSync(robotsTxtPath, robotsTxtContent, "utf8");
+    }
+
+    /**
      * Make URLs in the HTML files relative
      */
     async relativizeUrls() {
-        let files = await listAll([this.outputDir], {
-            recurse: true,
-            flatten: true
-        });
+        let catalog = this.outputDir;
+
+        if (catalog.substr(-4) === "/amp") {
+            catalog = catalog.slice(0, -4);
+        }
+
+        let files = await listAll([catalog], { recurse: true, flatten: true });
         files = files.filter(
             file => file.path.substr(-5) === ".html" && file.mode.dir === false
         );
-        files = files.map(file => file.path.replace(this.outputDir, ""));
+        files = files.map(file => file.path);
+        files = files.map(file => file.replace(catalog, ""));
 
         for (let file of files) {
-            this.relativizeUrlsInFile(file, this.outputDir);
+            this.relativizeUrlsInFile(file, catalog);
         }
     }
 

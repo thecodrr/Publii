@@ -4,23 +4,42 @@
             Sync repo
         </a>
 
-        <a href="#" class="sidebar-preview-link" @click="renderPreview">
+        <a
+            href="#"
+            class="sidebar-preview-link"
+            @click="renderPreview"
+        >
             Preview your changes
         </a>
 
-        <a href="#" :class="cssClasses" @click.prevent.stop="syncWebsite">
-            <span v-html="icon" class="sidebar-sync-link-icon"></span>
+        <a
+            href="#"
+            :class="cssClasses"
+            @click.prevent.stop="syncWebsite"
+        >
+            <span v-pure-html="icon" class="sidebar-sync-link-icon"></span>
             <span>{{ status }}</span>
         </a>
-
-        <sub v-if="hasSyncDate" class="sidebar-sync-date">
-            <template v-if="!hasManualDeploy"
-                >Last sync: <span>{{ syncDate }}</span></template
-            >
-            <template v-if="hasManualDeploy"
-                >Last rendered: <span>{{ syncDate }}</span></template
-            >
-        </sub>
+        <a 
+            v-if="hasSyncDate && websiteUrl"
+            :href="websiteUrl"
+            target="_blank"
+            class="sidebar-sync-date">
+            
+                <template v-if="!hasManualDeploy">
+                    Last sync: <span>{{ syncDate }}</span>
+                    <icon
+                        size="xs"
+                        name="external-link"/>
+                </template>
+                <template v-if="hasManualDeploy">
+                    Last rendered: <span>{{ syncDate }}</span>
+                    <icon
+                        size="xs"
+                        name="external-link"/>
+                </template>
+           
+        </a>
     </div>
 </template>
 
@@ -98,20 +117,20 @@ export default {
         syncDate: function() {
             let syncDate = this.$store.state.currentSite.config.syncDate;
 
-            if (
-                this.$store.state.app.config.timeFormat &&
-                this.$store.state.app.config.timeFormat == 24
-            ) {
-                return this.$moment(syncDate).format("MMM DD, YYYY HH:mm:ss");
+            if(this.$store.state.app.config.timeFormat && this.$store.state.app.config.timeFormat == 24) {
+                return this.$moment(syncDate).format('MMM DD, YYYY HH:mm');
             } else {
-                return this.$moment(syncDate).format("MMM DD, YYYY hh:mm:ss a");
+                return this.$moment(syncDate).format('MMM DD, YYYY hh:mm A');
             }
         },
-        hasManualDeploy() {
-            return (
-                this.$store.state.currentSite.config.deployment.protocol ===
-                "manual"
-            );
+        hasManualDeploy () {
+            return this.$store.state.currentSite.config.deployment.protocol === 'manual';
+        },
+        websiteUrl () { 
+            return this.$store.state.currentSite.config.domain;
+        },
+        syncInProgress () {
+            return this.$store.state.components.sidebar.syncInProgress;
         }
     },
     methods: {
@@ -213,16 +232,30 @@ export default {
             fill: var(--white);
         }
 
-        & > sub {
+        &-date {
             color: var(--sidebar-link-color);
             display: block;
-            font-size: 1.3rem;
-            letter-spacing: 0.5px;
-            margin: 0 -2.5rem;
+            font-size: 1.2rem;
+            height: 16px; // svg icon height
+            letter-spacing: -.025em;
+            margin-top: 1.2rem;
             opacity: var(--sidebar-link-opacity);
-            padding: 1.5rem 0 1rem 0;
             text-align: center;
-            width: calc(100% + 4rem);
+
+            &:hover {
+                color: var(--sidebar-link-hover-color);
+                opacity: 1;
+            }
+
+            &:focus {
+                color: var(--sidebar-link-color);
+            }
+
+            & > svg {
+                left: 3px;
+                position: relative;
+                top: 2px;
+            }
         }
 
         &-link {
@@ -266,14 +299,14 @@ export default {
                 }
             }
 
-            .sidebar-sync-icon {
-                &.is-animated {
-                    polygon {
-                        animation: pulse 1s infinite;
-                    }
-                }
-            }
-
+            // .sidebar-sync-icon {
+            //     &.is-animated {
+            //         polygon {
+            //             animation: pulse 1s infinite;
+            //         }
+            //     }
+            // }
+            
             // interjection mark icon
             .sidebar-interjection-icon {
                 display: block;
@@ -339,6 +372,14 @@ export default {
                 }
             }
         }
+
+        &-in-progress {
+            .sidebar-sync-link, .sidebar-sync-date, .sidebar-preview-website {
+               opacity: 0;
+               transition: .35s cubic-bezier(.17,.67,.13,1.05) .35s all;     
+               visibility: hidden; 
+            }
+        }
     }
 
     &-preview-link {
@@ -367,6 +408,35 @@ export default {
             pointer-events: none;
         }
     }
+}
+
+.minimized-sync {
+    &-in-progress {
+        .progress-message {
+            color: white;
+            position: initial;
+        }
+
+        .progress-wrapper {
+            min-height: 50px;
+            padding: 0;           
+        }
+
+        .progress {
+            background-color: var(--sidebar-preview-btn-border-color);
+            height: 4px;
+
+            &-bar {
+                height: 4px;
+            }
+        }
+    }   
+
+    &-error {
+         font-size: 1.3rem;
+    }
+
+    
 }
 
 @keyframes pulse {

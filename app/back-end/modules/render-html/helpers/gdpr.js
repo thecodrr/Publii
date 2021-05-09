@@ -22,13 +22,14 @@ class Gdpr {
             <input
                 id="gdpr-${configuration.groups[i].id}"
                 name="gdpr-${configuration.groups[i].id}"
+                ${configuration.groups[i].state ? 'checked' : ''}
                 type="checkbox">
             <label for="gdpr-${configuration.groups[i].id}">
                 ${configuration.groups[i].name}
             </label>`;
         }
 
-        if (Gdpr.getPrivacyPolicyUrl(configuration, renderer) !== 'none') {
+        if (Gdpr.getPrivacyPolicyUrl(configuration, renderer)) {
             privacyPolicyLink = `<a href="${Gdpr.getPrivacyPolicyUrl(configuration, renderer)}">${configuration.readMoreLinkLabel}</a>`;
         }
 
@@ -311,9 +312,31 @@ class Gdpr {
 
                 if (currentConfig === null) {
                     popup.classList.add('cookie-popup--is-sticky');
+                    var checkedGroups = popup.querySelectorAll('input[type="checkbox"]:checked');
+
+                    for (var i = 0; i < checkedGroups.length; i++) {
+                        var allowedGroup = checkedGroups[i].name.replace('gdpr-', '');
+
+                        if (allowedGroup !== '-' && allowedGroup !== '') {
+                            var scripts = document.querySelectorAll('script[type="gdpr-blocker/' + allowedGroup + '"]');
+
+                            for (var j = 0; j < scripts.length; j++) {
+                                addScript(scripts[j].src, scripts[j].text);
+                            }
+                        }
+                    }
                 } else {
                     if (currentConfig !== '') {
                         var allowedGroups = currentConfig.split(',');
+                        var checkedCheckboxes = popup.querySelectorAll('input[type="checkbox"]:checked');
+
+                        for (var j = 0; j < checkedCheckboxes.length; j++) {
+                            var name = checkedCheckboxes[j].name.replace('gdpr-', '');
+
+                            if (allowedGroups.indexOf(name) === -1) {
+                                checkedCheckboxes[j].checked = false;
+                            }
+                        }
 
                         for (var i = 0; i < allowedGroups.length; i++) {
                             var scripts = document.querySelectorAll('script[type="gdpr-blocker/' + allowedGroups[i] + '"]');

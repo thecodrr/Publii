@@ -141,9 +141,7 @@ class GithubPages {
 
                 await self.deploy();
             } catch (err) {
-                console.log('- - - GH ERROR  - - -');
-                console.log(JSON.stringify(err));
-                console.log('- - - - - - - - - - -');
+                console.log(`[${ new Date().toUTCString() }] ERROR: ${JSON.stringify(err)}`);
 
                 process.send({
                     type: 'web-contents',
@@ -154,7 +152,7 @@ class GithubPages {
                 });
 
                 setTimeout(function () {
-                    process.exit();
+                    process.kill(process.pid, 'SIGTERM');
                 }, 1000); 
             }
         });
@@ -257,7 +255,7 @@ class GithubPages {
             
             if(result === false) {
                 setTimeout(function () {
-                    process.exit();
+                    process.kill(process.pid, 'SIGTERM');
                 }, 1000);
 
                 return;
@@ -282,12 +280,10 @@ class GithubPages {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         } catch (err) {
-            console.log('- - - GH ERROR  - - -');
-            console.log(JSON.stringify(err));
-            console.log('- - - - - - - - - - -');
+            console.log(`[${ new Date().toUTCString() }] ERROR: ${JSON.stringify(err)}`);
 
             process.send({
                 type: 'web-contents',
@@ -298,7 +294,7 @@ class GithubPages {
             });
 
             setTimeout(function () {
-                process.exit();
+                process.kill(process.pid, 'SIGTERM');
             }, 1000);
         }
     }
@@ -307,11 +303,11 @@ class GithubPages {
         return new Promise((resolve, reject) => {
             method(this.client)(requestData, (err, data) => {
                 if (err) {
-                    console.log('(i) TRIED AGAIN', method.toString(), requestData.filePath);
+                    console.log(`[${ new Date().toUTCString() }] (i) TRIED AGAIN: ${method.toString()} - ${requestData.filePath}`);
 
                     method(this.client)(requestData, (err, data) => {
                         if (err) {
-                            console.log('(i) TRIED AGAIN FAIL', method.toString(), requestData.filePath);
+                            console.log(`[${ new Date().toUTCString() }] (i) TRIED AGAIN FAIL: ${method.toString()} - ${requestData.filePath}`);
                             reject(err);
                             return;
                         }
@@ -501,7 +497,7 @@ class GithubPages {
 
     createBlob(filePath) {
         let fileContent = fs.readFileSync(filePath, { encoding: 'base64' });
-        console.log('CREATE BLOB:', filePath);
+        console.log(`[${ new Date().toUTCString() }] CREATE BLOB: ${filePath}`);
 
         return this.apiRequest(
             {
@@ -514,7 +510,7 @@ class GithubPages {
             (api) => api.gitdata.createBlob,
             (result) => {
                 this.uploadedBlobs[filePath] = result.data.sha;
-                console.log('CREATED BLOB:', filePath, result.data.sha);
+                console.log(`[${ new Date().toUTCString() }] CREATED BLOB: ${filePath} - ${result.data.sha}`);
 
                 process.send({
                     type: 'web-contents',

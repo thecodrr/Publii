@@ -3,14 +3,14 @@
         <div class="popup">
             <p
                 :class="cssClasses"
-                v-html="message">
+                v-pure-html="message">
             </p>
 
             <div class="buttons">
                 <p-button
                     :type="buttonType"
                     :onClick="onOk">
-                    OK
+                    {{ buttonText }}
                 </p-button>
             </div>
         </div>
@@ -26,6 +26,7 @@ export default {
             textCentered: false,
             message: '',
             buttonStyle: 'normal',
+            buttonText: 'OK',
             okClick: () => false
         };
     },
@@ -56,7 +57,13 @@ export default {
                 this.textCentered = config.textCentered || false;
                 this.buttonStyle = config.buttonStyle || 'normal';
 
-                if(config.okClick) {
+                if (config.okLabel) {
+                    this.buttonText = config.okLabel;
+                } else {
+                    this.buttonText = 'OK';
+                }
+
+                if (config.okClick) {
                     this.okClick = config.okClick;
                 } else {
                     this.okClick = () => false;
@@ -73,7 +80,7 @@ export default {
             this.okClick();
         },
         onDocumentKeyDown (e) {
-            if (e.code === 'Enter' && this.isVisible) {
+            if (e.code === 'Enter' && !event.isComposing && this.isVisible) {
                 this.onEnterKey();
             }
         },

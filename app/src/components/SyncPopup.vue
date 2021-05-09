@@ -1,34 +1,23 @@
 <template>
-    <div class="overlay as-page" v-if="isVisible">
+    <div 
+        v-if="isVisible"
+        @click="maximizePopup"
+        :class="{
+            'overlay': true,
+            'as-page': true,
+            'is-minimized': isMinimized
+        }">
         <div class="popup sync">
             <div
-                v-if="isInSync && noIssues"
+                v-if="isInSync && noIssues && (isManual || !isMinimized)"
                 class="sync-success">                
 
                 <h1>Your website is now in sync</h1>
 
                 <p
-                    v-if="isGithubPages"
-                    class="description">
-                    <strong>Note:</strong> Changes on Github Pages can be visible in a few minutes from the deployment, <br>so be patient and wait for a while.
-                </p>
-
-                <p
-                    v-if="isGitlabPages"
-                    class="description">
-                    <strong>Note:</strong> Changes on Gitlab Pages can be visible in a few minutes from the deployment,  <br>so be patient and wait for a while.
-                </p>
-
-                <p
                     v-if="isManual"
                     class="description">
                     Your website files has been prepared. Use the "Get website files" button below <br>to get your files in order to manually deploy them.
-                </p>
-
-                <p 
-                    v-if="!(isGithubPages || isGitlabPages || isManual)"
-                    class="description">
-                    All files have been successfully uploaded to your server. <br>Visit your website by clicking the button below.
                 </p>
 
                 <div class="progress-bars-wrapper">
@@ -42,17 +31,17 @@
 
                 <div class="buttons">
                     <p-button
-                        v-if="!isManual"
-                        type="primary medium quarter-width"
-                        :onClick="openWebsite">
-                        Visit your website
-                    </p-button>
-
-                    <p-button
                         v-if="isManual"
                         type="primary medium quarter-width"
                         :onClick="showFolder">
                         Get website files
+                    </p-button>
+
+                    <p-button
+                        v-if="!isManual"
+                        type="primary medium  quarter-width"
+                        :onClick="openWebsite">
+                        Visit your website
                     </p-button>
 
                     <p-button
@@ -64,9 +53,8 @@
             </div>
 
             <div
-                v-if="isInSync && !noIssues"
+                v-if="isInSync && !noIssues && !isMinimized"
                 class="sync-success">
-               
                 <h1>Some files were not synced properly.</h1>
 
                 <p class="description">
@@ -89,7 +77,7 @@
             </div>
 
             <div
-                v-if="properConfig && !isInSync"
+                v-if="properConfig && !isInSync && !isMinimized"
                 class="sync-todo">
                 <div class="heading">
                     <h1>Website synchronization</h1>                    
@@ -179,7 +167,43 @@
                     </p-button>
                 </div>
             </div>
+
+            <!-- Minimized states -->
+            <div
+                v-if="properConfig && !isInSync && !isManual && isMinimized && !renderingInProgress"
+                class="minimized-sync-in-progress">
+                <progress-bar
+                    v-if="(uploadInProgress || syncInProgress || isInSync || uploadError)"
+                    :cssClasses="{ 'sync-progress-bar': true, 'is-in-progress': (uploadInProgress || syncInProgress), 'is-synced': isInSync, 'is-error': uploadError }"
+                    :color="uploadingProgressColor"
+                    :progress="uploadingProgress"
+                    :stopped="uploadingProgressIsStopped"
+                    :message="messageFromUploader" />
+            </div>
+
+            <!-- <div
+                v-if="properConfig && !isInSync && !isManual && isMinimized && !renderingInProgress && uploadError"
+                class="minimized-sync-error">
+                Error during sync
+            </div>
+
+            <div
+                v-if="isInSync && !noIssues && isMinimized"
+                class="minimized-sync-issues">
+                Issues during sync
+            </div> -->
         </div>
+
+        <a 
+            v-if="!isMinimized && uploadInProgress && !isManual"
+            href="#" 
+            class="minimize-popup"
+            @click.prevent.stop="minimizePopup">
+            <icon
+                size="s"
+                name="minimize"/>
+            <span>Minimize</span>
+        </a>
     </div>
 </template>
 
@@ -189,9 +213,17 @@ import Utils from './../helpers/utils.js';
 
 export default {
     name: 'sync-popup',
-    data: function() {
+    watch: {
+        'isVisible': function (newValue) {
+            if (newValue === false) {
+                this.$store.commit('setSyncStatus', false);
+            }
+        }
+    },
+    data () {
         return {
             isVisible: false,
+            isMinimized: false,
             renderingInProgress: false,
             uploadInProgress: false,
             messageFromRenderer: 'true',
@@ -283,11 +315,13 @@ export default {
             }
 
             this.isVisible = true;
+            this.isMinimized = false;
             this.messageFromRenderer = '';
             this.renderingProgress = 0;
             this.renderingProgressColor = 'blue';
             this.renderingProgressIsStopped = false;
             this.messageFromUploader = '';
+            this.uploadInProgress = false;
             this.uploadingProgress = 0;
             this.uploadingProgressColor = 'blue';
             this.uploadingProgressIsStopped = false;
@@ -297,6 +331,8 @@ export default {
             this.uploadError = false;
             this.noIssues = true;
         });
+
+        this.$bus.$on('sync-popup-maximize', this.maximizePopup);
 
         ipcRenderer.on('app-rendering-progress', this.renderingProgressUpdate);
 
@@ -374,7 +410,7 @@ export default {
         close: function() {
             this.isVisible = false;
         },
-        startSync: function() {
+        startSync () {
             if(!this.themeIsSelected) {
                 this.$bus.$emit('confirm-display', {
                     message: 'You must select a theme before trying to preview your site. Go to page settings and select a theme.',
@@ -392,7 +428,7 @@ export default {
             this.uploadInProgress = false;
             this.renderingInProgress = false;
 
-            if(!this.uploadError) {
+            if (!this.uploadError) {
                 this.messageFromRenderer = '';
                 this.renderingProgress = 0;
                 this.renderingProgressColor = 'blue';
@@ -503,6 +539,7 @@ export default {
         startUpload: function() {
             this.renderingInProgress = false;
             this.uploadInProgress = true;
+            this.$store.commit('setSyncStatus', true);
             this.$store.commit('setSidebarStatus', 'syncing');
 
             if(
@@ -585,17 +622,23 @@ export default {
             ipcRenderer.once('app-sync-is-done-saved', () => {
                 this.$store.commit('setSidebarStatus', 'synced');
                 this.isInSync = true;
+
+                if (this.isMinimized && this.isInSync && this.noIssues && !this.isManual) {
+                    this.isVisible = false;
+                }
             });
         }, 
         checkS3Config: function(deploymentConfig) {
-            if(
-                deploymentConfig.s3 &&
-                deploymentConfig.s3.id !== '' &&
-                deploymentConfig.s3.key !== '' &&
-                deploymentConfig.s3.bucket !== '' &&
-                deploymentConfig.s3.region !== ''
-            ) {
-                return true;
+            if (deploymentConfig.s3 && deploymentConfig.s3.customProvider) {
+                return  deploymentConfig.s3.endpoint !== '' && 
+                        deploymentConfig.s3.id !== '' &&
+                        deploymentConfig.s3.key !== '' &&
+                        deploymentConfig.s3.bucket !== '';
+            } else if (deploymentConfig.s3) {
+                return  deploymentConfig.s3.region !== '' &&
+                        deploymentConfig.s3.id !== '' &&
+                        deploymentConfig.s3.key !== '' &&
+                        deploymentConfig.s3.bucket !== '';
             }
 
             return false;
@@ -652,24 +695,33 @@ export default {
             return !(!this.$store.state.currentSite.config.theme || this.$store.state.currentSite.config.theme === '');
         },
         onDocumentKeyDown (e) {
-            if (e.code === 'Enter' && this.isVisible && !this.syncInProgress) {
+            if (e.code === 'Enter' && !event.isComposing && this.isVisible && !this.syncInProgress) {
                 this.onEnterKey();
             }
         },
         onEnterKey () {
-            if (this.isInSync && !this.isManual) {
-                this.openWebsite();
-            } else if (this.isInSync && this.noIssues && this.isManual) {
+            if (this.isInSync && this.noIssues && this.isManual) {
                 this.showFolder();
             } else if (this.properConfig && !this.isInSync) {
                 this.startSync();
             } else if (this.noDomainConfig || (!this.noDomainConfig && this.noServerConfig)) {
                 this.goToServerSettings();
             }
+        },
+        maximizePopup () {
+            if (this.isMinimized) {
+                this.isMinimized = false;
+            }
+        },
+        minimizePopup () {
+            if (!this.isMinimized) {
+                this.isMinimized = true;
+            }
         }
     },
     beforeDestroy: function() {
         this.$bus.$off('sync-popup-display');
+        this.$bus.$off('sync-popup-maximize', this.maximizePopup);
         ipcRenderer.off('app-preview-render-error');
         ipcRenderer.off('app-rendering-progress');
         ipcRenderer.off('app-connection-error', this.showError);
@@ -755,4 +807,88 @@ export default {
         z-index: 10;
     }
 }
+
+.minimize-popup {
+   align-items: center;
+   color: var(--icon-secondary-color);
+   display: flex;
+   position: absolute;
+   right: 3.2rem;
+   will-change: transform;
+
+   &:active,
+   &:focus,
+   &:hover {
+      color: var(--icon-tertiary-color);
+
+      svg {
+           transform: scale(.9);
+      }
+   }
+
+   & > svg {
+      transition: var(--transition);
+   }
+
+   & > span {
+      margin-left: .6rem;
+   }
+}
+
+.overlay {
+    transition: 0.5s cubic-bezier(.17,.67,.13,1.05) all;
+
+    &.is-minimized {
+        animation: minimized-popup .25s linear .25s forwards;
+        border-radius: 10px;
+        box-shadow: 0 0 160px rgba(0, 0, 0, .2);
+        cursor: pointer;
+        bottom: 56px;     
+        left: 0;
+        opacity: 0;
+        overflow: visible;
+        padding: 0;
+        top: auto!important;
+        transform: translateY(10%) scale(.8);  
+        z-index: 1;   
+  
+        & .progress-message, .minimized-sync-error {
+            color: white !important;
+        }
+    
+        .popup {
+            animation: minimized-content .25s cubic-bezier(.17,.67,.13,1.05) .25s forwards;
+            margin-top: 1.6rem;
+            position: initial;
+            transform: none;
+            visibility: hidden;
+        }
+
+        @keyframes minimized-popup {
+           
+            50% {opacity: 0;
+                transform: translateY(10%); 
+            }
+            99% {
+                transform: translateY(10%); 
+            }
+           
+            100% {           
+                box-shadow: none; 
+                border-radius: 3px; 
+                background: none;
+                height: 50px;
+                width: 240px; 
+                opacity: 1;
+                transform: translate(40px, 0); 
+            }
+        }
+
+        @keyframes minimized-content {
+            99% {visibility: hidden;}
+            100% {visibility: visible;}
+        }
+    }
+}
+
 </style>

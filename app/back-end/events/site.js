@@ -180,90 +180,99 @@ class SiteEvents {
 
             // Save the password in the keychain
             if (passwordSafeStorage) {
-                if (
-                    config.settings.deployment.password !== '' && 
-                    config.settings.deployment.password !== 'publii ' + siteID
-                ) {
-                    passwordData = await self.loadPassword(
-                        config.settings,
-                        'publii',
-                        config.settings.deployment.password
-                    );
-                    config.settings.deployment.password = passwordData.toSave;
-                }
+                try {
+                    if (
+                        config.settings.deployment.password !== '' && 
+                        config.settings.deployment.password !== 'publii ' + siteID
+                    ) {
+                        passwordData = await self.loadPassword(
+                            config.settings,
+                            'publii',
+                            config.settings.deployment.password
+                        );
+                        config.settings.deployment.password = passwordData.toSave;
+                    }
 
-                if (
-                    config.settings.deployment.passphrase !== '' && 
-                    config.settings.deployment.passphrase !== 'publii-passphrase ' + siteID
-                ) {
-                    passphraseData = await self.loadPassword(
-                        config.settings,
-                        'publii-passphrase',
-                        config.settings.deployment.passphrase
-                    );
-                    config.settings.deployment.passphrase = passphraseData.toSave;
-                }
+                    if (
+                        config.settings.deployment.passphrase !== '' && 
+                        config.settings.deployment.passphrase !== 'publii-passphrase ' + siteID
+                    ) {
+                        passphraseData = await self.loadPassword(
+                            config.settings,
+                            'publii-passphrase',
+                            config.settings.deployment.passphrase
+                        );
+                        config.settings.deployment.passphrase = passphraseData.toSave;
+                    }
 
-                if (
-                    config.settings.deployment.s3.id !== '' && 
-                    config.settings.deployment.s3.key !== '' && 
-                    config.settings.deployment.s3.id !== 'publii-s3-id ' + siteID
-                ) {
-                    s3IdData = await self.loadPassword(
-                        config.settings,
-                        'publii-s3-id',
-                        config.settings.deployment.s3.id
-                    );
-                    s3KeyData = await self.loadPassword(
-                        config.settings,
-                        'publii-s3-key',
-                        config.settings.deployment.s3.key
-                    );
-                    config.settings.deployment.s3.id = s3IdData.toSave;
-                    config.settings.deployment.s3.key = s3KeyData.toSave;
-                }
+                    if (
+                        config.settings.deployment.s3.id !== '' && 
+                        config.settings.deployment.s3.key !== '' && 
+                        config.settings.deployment.s3.id !== 'publii-s3-id ' + siteID
+                    ) {
+                        s3IdData = await self.loadPassword(
+                            config.settings,
+                            'publii-s3-id',
+                            config.settings.deployment.s3.id
+                        );
+                        s3KeyData = await self.loadPassword(
+                            config.settings,
+                            'publii-s3-key',
+                            config.settings.deployment.s3.key
+                        );
+                        config.settings.deployment.s3.id = s3IdData.toSave;
+                        config.settings.deployment.s3.key = s3KeyData.toSave;
+                    }
 
-                if (
-                    config.settings.deployment.github.token !== '' &&
-                    config.settings.deployment.github.token !== 'publii-gh-token ' + siteID
-                ) {
-                    ghTokenData = await self.loadPassword(
-                        config.settings,
-                        'publii-gh-token',
-                        config.settings.deployment.github.token
-                    );
-                    config.settings.deployment.github.token = ghTokenData.toSave;
-                }
+                    if (
+                        config.settings.deployment.github.token !== '' &&
+                        config.settings.deployment.github.token !== 'publii-gh-token ' + siteID
+                    ) {
+                        ghTokenData = await self.loadPassword(
+                            config.settings,
+                            'publii-gh-token',
+                            config.settings.deployment.github.token
+                        );
+                        config.settings.deployment.github.token = ghTokenData.toSave;
+                    }
 
-                if (
-                    config.settings.deployment.gitlab.token !== '' && 
-                    config.settings.deployment.gitlab.token !== 'publii-gl-token ' + siteID
-                ) {
-                    glTokenData = await self.loadPassword(
-                        config.settings,
-                        'publii-gl-token',
-                        config.settings.deployment.gitlab.token
-                    );
-                    config.settings.deployment.gitlab.token = glTokenData.toSave;
-                }
+                    if (
+                        config.settings.deployment.gitlab.token !== '' && 
+                        config.settings.deployment.gitlab.token !== 'publii-gl-token ' + siteID
+                    ) {
+                        glTokenData = await self.loadPassword(
+                            config.settings,
+                            'publii-gl-token',
+                            config.settings.deployment.gitlab.token
+                        );
+                        config.settings.deployment.gitlab.token = glTokenData.toSave;
+                    }
 
-                if (
-                    config.settings.deployment.netlify.id !== '' && 
-                    config.settings.deployment.netlify.token !== '' &&
-                    config.settings.deployment.netlify.token !== 'publii-netlify-token ' + siteID
-                ) {
-                    netlifyIdData = await self.loadPassword(
-                        config.settings,
-                        'publii-netlify-id',
-                        config.settings.deployment.netlify.id
-                    );
-                    netlifyTokenData = await self.loadPassword(
-                        config.settings,
-                        'publii-netlify-token',
-                        config.settings.deployment.netlify.token
-                    );
-                    config.settings.deployment.netlify.id = netlifyIdData.toSave;
-                    config.settings.deployment.netlify.token = netlifyTokenData.toSave;
+                    if (
+                        config.settings.deployment.netlify.id !== '' && 
+                        config.settings.deployment.netlify.token !== '' &&
+                        config.settings.deployment.netlify.token !== 'publii-netlify-token ' + siteID
+                    ) {
+                        netlifyIdData = await self.loadPassword(
+                            config.settings,
+                            'publii-netlify-id',
+                            config.settings.deployment.netlify.id
+                        );
+                        netlifyTokenData = await self.loadPassword(
+                            config.settings,
+                            'publii-netlify-token',
+                            config.settings.deployment.netlify.token
+                        );
+                        config.settings.deployment.netlify.id = netlifyIdData.toSave;
+                        config.settings.deployment.netlify.token = netlifyTokenData.toSave;
+                    }
+                } catch (error) {
+                    event.sender.send('app-site-config-saved', {
+                        status: false,
+                        message: 'no-keyring'
+                    });
+
+                    return;
                 }
             }
 
@@ -316,7 +325,7 @@ class SiteEvents {
          */
         ipcMain.on('app-site-switch', (event, config) => {
             let result = appInstance.switchSite(config.site);
-            let language = this.getSiteLanguage(appInstance, config.siteName);
+            let language = this.getSiteLanguage(appInstance, config.site);
             this.setSpellcheckerLanguage (appInstance, language);
             event.sender.send('app-site-switched', result);
         });
@@ -373,7 +382,12 @@ class SiteEvents {
             let site = new Site(appInstance, config);
             let result = site.create(authorName);
 
-            if (result === false) {
+            if (result === 'db-error') {
+                event.sender.send('app-site-creation-db-error');
+                return;
+            }
+
+            if (result === 'duplicate') {
                 event.sender.send('app-site-creation-duplicate');
                 return;
             }
@@ -539,9 +553,17 @@ class SiteEvents {
 
         let availableLanguages = appInstance.mainWindow.webContents.session.availableSpellCheckerLanguages;
         language = language.toLocaleLowerCase();
+        language = language.split('-');
+
+        if (language[1]) {
+            language = language[0] + '-' + language[1].toLocaleUpperCase();
+        } else {
+            language = language[0];
+        }
 
         if (availableLanguages.indexOf(language) > -1) {
             appInstance.mainWindow.webContents.session.setSpellCheckerLanguages([language]);
+            console.log('Set spellchecker to:', language);
             return;
         }
 
@@ -550,6 +572,7 @@ class SiteEvents {
 
         if (availableLanguages.indexOf(language) > -1) {
             appInstance.mainWindow.webContents.session.setSpellCheckerLanguages([language]);
+            console.log('Set spellchecker to:', language);
             return;
         }
 

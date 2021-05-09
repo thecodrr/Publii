@@ -2,9 +2,9 @@ const fs = require('fs');
 const url = require('url');
 const path = require('path');
 const moment = require('moment');
-const xmlParser = require('xml2json');
+const xmlParser = require('fast-xml-parser');
 const download = require('image-downloader');
-const wpautop = require('wpautop');
+const automaticParagraphs = require('./automatic-paragraphs.js');
 const slug = require('./../../helpers/slug');
 const Author = require('./../../author.js');
 const Tag = require('./../../tag.js');
@@ -83,8 +83,7 @@ class WxrParser {
     parseFile() {
         let results = false;
         try {
-            results = xmlParser.toJson(this.fileContent);
-            results = JSON.parse(results);
+            results = xmlParser.parse(this.fileContent);
         } catch(e) {
             console.log('An error occurred:', e);
             return false;
@@ -374,9 +373,11 @@ class WxrParser {
             if(posts[i]['category'] && (posts[i]['category'].length || posts[i]['category'] instanceof Object)) {
                 let tags = false;
 
-                if (!posts[i]['category'].length) {
+                if (!posts[i]['category'].length || typeof posts[i]['category'] === 'string') {
                     posts[i]['category'] = [posts[i]['category']];
                 }
+
+                console.log(posts[i]['category']);
 
                 if(this.usedTaxonomy === 'tags') {
                     tags = posts[i]['category'].filter(item => item.domain === 'post_tag');
@@ -664,8 +665,8 @@ class WxrParser {
         text = text.replace(/<!--more-->/g, '<hr id="read-more" />');
 
         if(this.autop) {
-            console.log('(i) Used autop for the post content');
-            text = wpautop(text, true);
+            console.log('(i) Used automatic paragraphs for the post content');
+            text = automaticParagraphs(text);
         }
 
         return text;

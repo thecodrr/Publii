@@ -450,18 +450,11 @@ class Themes {
 
         // Load basic theme config
         let themeLocalConfig = UtilsHelper.loadThemeConfig(themeDir);
-        let computedOptionsConfig = Themes.loadComputedOptions(
-            themeDir,
-            themeLocalConfig
-        );
 
         if (!themeLocalConfig.customConfig) {
             themeLocalConfig.customConfig = [];
         }
 
-        themeLocalConfig.customConfig = themeLocalConfig.customConfig.concat(
-            computedOptionsConfig
-        );
         defaultThemeConfig = UtilsHelper.mergeObjects(
             defaultThemeConfig,
             themeLocalConfig
@@ -509,6 +502,14 @@ class Themes {
                 );
             }
         }
+
+        let computedOptionsConfig = Themes.loadComputedOptions(
+            themeDir,
+            defaultThemeConfig
+        );
+        defaultThemeConfig.customConfig = defaultThemeConfig.customConfig.concat(
+            computedOptionsConfig
+        );
 
         return defaultThemeConfig;
     }

@@ -87,6 +87,10 @@ export default new Router({
                     component: Posts
                 },
                 {
+                    path: "posts/:filter",
+                    component: Posts
+                },
+                {
                     path: "menus",
                     component: Menus
                 },

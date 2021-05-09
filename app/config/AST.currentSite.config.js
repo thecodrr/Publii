@@ -9,7 +9,7 @@ const AstCurrentSiteConfig = {
     },
     domain: '',
     language: 'en',
-    spellchecking: true,
+    spellchecking: false,
     advanced: {
         cssCompression: 1,
         htmlCompression: 1,
@@ -73,7 +73,9 @@ const AstCurrentSiteConfig = {
             numberOfPosts: 10,
             showFeaturedImage: 1,
             enableRss: 1,
-            enableJson: 1
+            enableJson: 1,
+            showOnlyFeatured: 0,
+            excludeFeatured: 0
         },
         urls: {
             cleanUrls: false,
@@ -124,7 +126,12 @@ const AstCurrentSiteConfig = {
         },
         relatedPostsOrder: 'default',
         relatedPostsCriteria: 'titles-and-tags',
-        relatedPostsIncludeAllPosts: true
+        relatedPostsIncludeAllPosts: true,
+        editors: {
+            wysiwygAdditionalValidElements: '',
+            codemirrorTabSize: 4,
+            codemirrorAutoIndent: true
+        }
     },
     deployment: {
         protocol: '',
@@ -139,6 +146,9 @@ const AstCurrentSiteConfig = {
         passphrase: '',
         sftpkey: '',
         s3: {
+            customProvider: false,
+            provider: 'aws',
+            endpoint: '',
             id: '',
             key: '',
             bucket: '',

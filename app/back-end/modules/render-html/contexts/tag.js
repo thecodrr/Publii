@@ -1,6 +1,6 @@
 // Necessary packages
-const RendererContext = require('../renderer-context.js');
-const RendererHelpers = require('./../helpers/helpers.js');
+const RendererContext = require("../renderer-context.js");
+const RendererHelpers = require("./../helpers/helpers.js");
 
 /**
  * Class used create context
@@ -16,11 +16,15 @@ class RendererContextTag extends RendererContext {
         this.tag = this.renderer.cachedItems.tags[this.tagID];
 
         // Retrieve post
-        let includeFeaturedPosts = '';
-        let shouldSkipFeaturedPosts = RendererHelpers.getRendererOptionValue('tagsIncludeFeaturedInPosts', this.themeConfig) === false;
+        let includeFeaturedPosts = "";
+        let shouldSkipFeaturedPosts =
+            RendererHelpers.getRendererOptionValue(
+                "tagsIncludeFeaturedInPosts",
+                this.themeConfig
+            ) === false;
 
         if (shouldSkipFeaturedPosts) {
-            includeFeaturedPosts = 'p.status NOT LIKE \'%featured%\' AND';
+            includeFeaturedPosts = "p.status NOT LIKE '%featured%' AND";
         }
 
         if (this.postsNumber === -1) {
@@ -62,7 +66,9 @@ class RendererContextTag extends RendererContext {
                 });
         }
 
-        this.tags = this.renderer.commonData.tags.filter(tag => tag.additionalData.isHidden !== true);
+        this.tags = this.renderer.commonData.tags.filter(
+            tag => tag.additionalData.isHidden !== true
+        );
         this.menus = this.renderer.commonData.menus;
         this.unassignedMenus = this.renderer.commonData.unassignedMenus;
         this.authors = this.renderer.commonData.authors;
@@ -90,12 +96,24 @@ class RendererContextTag extends RendererContext {
             .map(post => this.renderer.cachedItems.posts[post.id])
             .filter(post => post.tags.some(tag => tag.id === this.tagID));
         this.hiddenPosts = this.hiddenPosts || [];
-        this.hiddenPosts = this.hiddenPosts.map(post => this.renderer.cachedItems.posts[post.id]);
-        let shouldSkipFeaturedPosts = RendererHelpers.getRendererOptionValue('tagsIncludeFeaturedInPosts', this.themeConfig) === false;
-        let featuredPostsNumber = RendererHelpers.getRendererOptionValue('tagsFeaturedPostsNumber', this.themeConfig);
+        this.hiddenPosts = this.hiddenPosts.map(
+            post => this.renderer.cachedItems.posts[post.id]
+        );
+        let shouldSkipFeaturedPosts =
+            RendererHelpers.getRendererOptionValue(
+                "tagsIncludeFeaturedInPosts",
+                this.themeConfig
+            ) === false;
+        let featuredPostsNumber = RendererHelpers.getRendererOptionValue(
+            "tagsFeaturedPostsNumber",
+            this.themeConfig
+        );
 
         // Remove featured posts from posts if featured posts allowed
-        if (shouldSkipFeaturedPosts && (featuredPostsNumber > 0 || featuredPostsNumber === -1)) {
+        if (
+            shouldSkipFeaturedPosts &&
+            (featuredPostsNumber > 0 || featuredPostsNumber === -1)
+        ) {
             let featuredPostsIds = this.featuredPosts.map(post => post.id);
             this.posts = this.posts.filter(
                 post => featuredPostsIds.indexOf(post.id) === -1
@@ -107,6 +125,9 @@ class RendererContextTag extends RendererContext {
             .replace(/%tagname/g, this.tag.name)
             .replace(/%sitename/g, siteName);
         this.metaDescription = this.siteConfig.advanced.tagMetaDescription;
+        this.metaRobots = false;
+        this.hasCustomCanonicalUrl = false;
+        this.canonicalUrl = "";
 
         let metaData = this.tag.additionalData;
 
@@ -130,6 +151,16 @@ class RendererContextTag extends RendererContext {
         if (this.metaDescription === "") {
             this.metaDescription = this.siteConfig.advanced.metaDescription;
         }
+
+        if (metaData && metaData.metaRobots) {
+            this.metaRobots = metaData.metaRobots;
+        }
+
+        if (metaData && metaData.canonicalUrl) {
+            this.canonicalUrl = metaData.canonicalUrl;
+            this.hasCustomCanonicalUrl = true;
+            this.metaRobots = "";
+        }
     }
 
     setContext() {
@@ -137,6 +168,10 @@ class RendererContextTag extends RendererContext {
         this.prepareData();
 
         let metaRobotsValue = this.siteConfig.advanced.metaRobotsTags;
+
+        if (this.metaRobots !== false) {
+            metaRobotsValue = this.metaRobots;
+        }
 
         if (this.siteConfig.advanced.noIndexThisPage) {
             metaRobotsValue = "noindex,nofollow";
@@ -153,6 +188,8 @@ class RendererContextTag extends RendererContext {
             metaTitleRaw: this.metaTitle,
             metaDescriptionRaw: this.metaDescription,
             metaRobotsRaw: metaRobotsValue,
+            hasCustomCanonicalUrl: this.hasCustomCanonicalUrl,
+            canonicalUrl: this.canonicalUrl,
             siteOwner: this.renderer.cachedItems.authors[1],
             menus: this.menus,
             unassignedMenus: this.unassignedMenus

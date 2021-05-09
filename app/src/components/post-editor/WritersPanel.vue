@@ -11,7 +11,7 @@
             <dd>Sentences</dd>
             <dt id="counter-paragraphs">{{ paragraphs }}</dt>
             <dd>Paragraphs</dd>
-            <dt id="counter-reading-time"><span v-html="readingTime"></span><small>min</small></dt>
+            <dt id="counter-reading-time"><span v-pure-html="readingTime"></span><small>min</small></dt>
             <dd>Reading Time</dd>
         </dl>
     </div>
@@ -88,12 +88,12 @@ export default {
         border-right: 1px solid var(--input-border-color);
         bottom: 0;
         color: var(--label-color);
-        height: calc(100vh - 2.2rem);
+        height: calc(100vh - var(--topbar-height));
         left: 0;
         opacity: 1;
         position: absolute;
         text-align: center;
-        top: 2.2rem;
+        top: var(--topbar-height);
         transition: var(--transition);
         width: 185px;
         z-index: 100;

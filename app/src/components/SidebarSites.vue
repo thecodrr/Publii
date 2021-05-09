@@ -14,13 +14,23 @@ export default {
     components: {
         'site-logo': SiteLogo
     },
-    data: function() {
+    computed: {
+        syncInProgress () {
+            return this.$store.state.components.sidebar.syncInProgress;
+        }
+    },
+    data () {
         return {
             submenuIsOpen: false
         };
     },
     methods: {
         toggle (e) {
+            if (this.syncInProgress) {
+                this.$bus.$emit('sync-popup-maximize');
+                return;
+            }
+
             this.$bus.$emit('sites-popup-show');
         }
     }

@@ -6,6 +6,7 @@ const URLHelper = require("./helpers/url");
 const normalizePath = require("normalize-path");
 const RendererCache = require("./renderer-cache");
 const RendererHelpers = require("./helpers/helpers.js");
+const sizeOf = require("image-size");
 const UtilsHelper = require("./../../helpers/utils");
 
 /*
@@ -124,7 +125,11 @@ class RendererContext {
                 }
             }
 
-            if (items[i] && items[i].items.length > 0) {
+            if (items[i].isHidden) {
+                items[i] = false;
+            }
+
+            if (items[i] && !items[i].isHidden && items[i].items.length > 0) {
                 items[i].items = this.prepareMenuItems(
                     items[i].items,
                     tagsData,
@@ -233,6 +238,7 @@ class RendererContext {
             fullURL + "/" + this.siteConfig.advanced.urls.searchPage;
         let errorUrl = fullURL + "/" + this.siteConfig.advanced.urls.errorPage;
         let logoUrl = normalizePath(this.themeConfig.config.logo);
+        let logoSize = false;
         let assetsUrl =
             normalizePath(this.siteConfig.domain) +
             "/" +
@@ -254,6 +260,15 @@ class RendererContext {
         errorUrl = URLHelper.fixProtocols(errorUrl);
 
         if (logoUrl !== "") {
+            try {
+                logoSize = sizeOf(path.join(this.inputDir, logoUrl));
+            } catch (e) {
+                logoSize = {
+                    width: "",
+                    height: ""
+                };
+            }
+
             logoUrl =
                 normalizePath(this.siteConfig.domain) +
                 "/" +
@@ -283,6 +298,7 @@ class RendererContext {
                 ampUrl: "",
                 name: siteNameValue,
                 logo: logoUrl,
+                logoSize: logoSize,
                 assetsUrl: assetsUrl,
                 postsOrdering: postsOrdering,
                 lastUpdate: Date.now(),

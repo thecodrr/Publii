@@ -1,7 +1,10 @@
 <template>
     <div v-if="isVisible" class="overlay">
         <div class="popup">
-            <p :class="cssClasses" v-html="message"></p>
+            <p
+                :class="cssClasses"
+                v-pure-html="message">
+            </p>
 
             <text-input
                 v-if="hasInput"
@@ -115,8 +118,8 @@ export default {
             document.body.classList.remove("has-popup-visible");
             this.cancelClick();
         },
-        onDocumentKeyDown(e) {
-            if (e.code === "Enter" && this.isVisible) {
+        onDocumentKeyDown (e) {
+            if (e.code === 'Enter' && !event.isComposing && this.isVisible) {
                 this.onEnterKey();
             }
         },
